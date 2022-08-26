@@ -99,6 +99,9 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
 		_get_repo "$OMR_TARGET/source" https://github.com/suyuan168/pepe "master"
+		_get_repo feeds/qaa https://github.com/suyuan168/qaa "main"
+		_get_repo feeds/lenn https://github.com/suyuan168/lenn "main"
+		_get_repo feeds/telephony https://github.com/openwrt/telephony "openwrt-21.02"
 		_get_repo feeds/packages https://github.com/openwrt/packages "openwrt-21.02"
 		_get_repo feeds/luci https://github.com/openwrt/luci "openwrt-21.02"
 		_get_repo feeds/routing https://github.com/openwrt/routing "openwrt-21.02"
@@ -149,6 +152,8 @@ EOF
 cat > "$OMR_TARGET/source/feeds.conf" <<EOF
 src-link packages $(readlink -f feeds/packages)
 src-link luci $(readlink -f feeds/luci)
+src-link lenn $(readlink -f feeds/lenn)
+src-link qaa $(readlink -f feeds/qaa)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/routing)
 src-link telephony $(readlink -f feeds/telephony)
