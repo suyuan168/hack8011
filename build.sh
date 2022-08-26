@@ -147,6 +147,9 @@ cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
 EOF
 
 cat > "$OMR_TARGET/source/feeds.conf" <<EOF
+src-link lean $(readlink -f package/lean)
+src-link qca $(readlink -f package/qca)
+src-link qat $(readlink -f package/qat)
 src-link packages $(readlink -f feeds/packages)
 src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
