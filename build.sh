@@ -539,6 +539,8 @@ scripts/feeds update -a
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
+	scripts/feeds install -a -d m -p qaa
+	scripts/feeds install -a -d m -p lenn
 fi
 if [ -n "$CUSTOM_FEED" ]; then
 	scripts/feeds install -a -d m -p openmptcprouter
