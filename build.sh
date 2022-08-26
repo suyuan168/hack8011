@@ -148,9 +148,6 @@ EOF
 
 cat > "$OMR_TARGET/source/feeds.conf" <<EOF
 src-link packages $(readlink -f feeds/packages)
-src-link qca $(readlink -f "$OMR_TARGET/source/package/qca)
-src-link qat $(readlink -f "$OMR_TARGET/source/package/qat)
-src-link lean $(readlink -f "$OMR_TARGET/source/package/lean)
 src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/routing)
