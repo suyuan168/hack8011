@@ -512,12 +512,6 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 [ -d ${OMR_FEED}/iperf3 ] && rm -rf feeds/${OMR_KERNEL}/packages/net/iperf3
 [ -d ${OMR_FEED}/golang ] && rm -rf feeds/${OMR_KERNEL}/packages/lang/golang
 
-echo "Add Occitan translation support"
-if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
-	patch -N -p1 -s < patches/luci-occitan.patch
-	#sh feeds/luci/build/i18n-add-language.sh oc
-fi
-[ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
 echo "Done"
 
 echo "开始编译qsdk 5.4 ipq6x咯"
