@@ -99,12 +99,12 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
 		_get_repo "$OMR_TARGET/source" https://github.com/suyuan168/pepe "master"
+		_get_repo feeds/telephony https://github.com/openwrt/telephony "openwrt-21.02"
+		_get_repo feeds/packages https://github.com/coolsnowwolf/packages "master"
+		_get_repo feeds/luci https://github.com/coolsnowwolf/luci "master"
+		_get_repo feeds/routing https://github.com/coolsnowwolf/routing "main"
 		_get_repo feeds/qaa https://github.com/suyuan168/qaa "main"
 		_get_repo feeds/lenn https://github.com/suyuan168/lenn "main"
-		_get_repo feeds/telephony https://github.com/openwrt/telephony "openwrt-21.02"
-		_get_repo feeds/packages https://github.com/openwrt/packages "openwrt-21.02"
-		_get_repo feeds/luci https://github.com/openwrt/luci "openwrt-21.02"
-		_get_repo feeds/routing https://github.com/openwrt/routing "openwrt-21.02"
 		_get_repo feeds/telephony https://github.com/openwrt/telephony "openwrt-21.02"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
