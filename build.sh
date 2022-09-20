@@ -521,7 +521,6 @@ fi
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
 echo "Done"
 chmod -R 777 "$OMR_TARGET/source"
-ln -s "$OMR_TARGET/source/feeds/ipq807x/ipq807x" "$OMR_TARGET/source/target/linux/ipq807x" 
 cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
@@ -547,7 +546,7 @@ else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
 scripts/feeds install -a
-
+ln -s feeds/ipq807x/ipq807x target/linux/ipq807x
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
