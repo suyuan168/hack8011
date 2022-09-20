@@ -98,11 +98,13 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/source" https://github.com/suyuan168/qsdk "master"
-		_get_repo feeds/packages https://github.com/openwrt/packages "51077c1094a1e63d333d32b138b381296fd45276"
-		_get_repo feeds/luci https://github.com/openwrt/luci "bdaec14361fa44529a2da5996745d43fc79fd764"
-		_get_repo feeds/routing https://github.com/openwrt/routing "openwrt-21.02"
-		_get_repo feeds/telephony https://github.com/openwrt/telephony "openwrt-21.02"
+		_get_repo "$OMR_TARGET/source" https://github.com/suyuan168/glopenwrt6018 "master"
+		_get_repo feeds/packages https://github.com/openwrt/packages "78bcd00c13587571b5c79ed2fc3363aa674aaef7"
+		_get_repo feeds/luci https://github.com/openwrt/luci "1c3b32dc1bec15e3076a447762b1c4f94eb75fb7"
+		_get_repo feeds/routing https://github.com/openwrt/routing "a0d61bddb3ce4ca54bd76af86c28f58feb6cc044"
+		_get_repo feeds/telephony https://github.com/openwrt/telephony "0183c1adda0e7581698b0ea4bff7c08379acf447"
+		_get_repo feeds/ipq807x https://github.com/suyuan168/ipq807x "master"
+		_get_repo feeds/ax-wifi https://github.com/suyuan168/ax-wifi "master"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
@@ -152,6 +154,8 @@ src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/routing)
 src-link telephony $(readlink -f feeds/telephony)
+src-link ipq807x $(readlink -f feeds/ipq807x)
+src-link ax-wifi $(readlink -f feeds/ax-wifi)
 EOF
 
 if [ -n "$CUSTOM_FEED" ]; then
