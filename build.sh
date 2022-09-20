@@ -45,7 +45,7 @@ OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-coun
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/suyuan168/openmptcprouter-feeds}"
-OMR_FEED_SRC="${OMR_FEED_SRC:-ipq60xx}"
+OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
 CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 
@@ -105,6 +105,7 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/telephony https://github.com/openwrt/telephony "0183c1adda0e7581698b0ea4bff7c08379acf447"
 		_get_repo feeds/ipq807x https://github.com/suyuan168/ipq807x "master"
 		_get_repo feeds/ax-wifi https://github.com/suyuan168/ax-wifi "master"
+		_get_repo feeds/gl-feeds https://github.com/suyuan168/gl-feeds "master"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
@@ -156,6 +157,7 @@ src-link routing $(readlink -f feeds/routing)
 src-link telephony $(readlink -f feeds/telephony)
 src-link ipq807x $(readlink -f feeds/ipq807x)
 src-link ax-wifi $(readlink -f feeds/ax-wifi)
+src-link gl-feeds $(readlink -f feeds/gl-feeds)
 EOF
 
 if [ -n "$CUSTOM_FEED" ]; then
