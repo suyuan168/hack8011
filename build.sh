@@ -45,7 +45,7 @@ OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-coun
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/suyuan168/openmptcprouter-feeds}"
-OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
+OMR_FEED_SRC="${OMR_FEED_SRC:-ipq60xx}"
 
 CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 
@@ -98,12 +98,9 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/source" https://github.com/suyuan168/pepe "master"
-		_get_repo feeds/qaa https://github.com/suyuan168/qaa "main"
-		_get_repo feeds/lenn https://github.com/suyuan168/lenn "main"
-		_get_repo feeds/telephony https://github.com/openwrt/telephony "openwrt-21.02"
-		_get_repo feeds/packages https://github.com/openwrt/packages "openwrt-21.02"
-		_get_repo feeds/luci https://github.com/openwrt/luci "openwrt-21.02"
+		_get_repo "$OMR_TARGET/source" https://github.com/suyuan168/qsdk "master"
+		_get_repo feeds/packages https://github.com/openwrt/packages "51077c1094a1e63d333d32b138b381296fd45276"
+		_get_repo feeds/luci https://github.com/openwrt/luci "bdaec14361fa44529a2da5996745d43fc79fd764"
 		_get_repo feeds/routing https://github.com/openwrt/routing "openwrt-21.02"
 		_get_repo feeds/telephony https://github.com/openwrt/telephony "openwrt-21.02"
 	fi
@@ -152,8 +149,6 @@ EOF
 cat > "$OMR_TARGET/source/feeds.conf" <<EOF
 src-link packages $(readlink -f feeds/packages)
 src-link luci $(readlink -f feeds/luci)
-src-link lenn $(readlink -f feeds/lenn)
-src-link qaa $(readlink -f feeds/qaa)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/routing)
 src-link telephony $(readlink -f feeds/telephony)
@@ -512,10 +507,27 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 [ -d ${OMR_FEED}/iperf3 ] && rm -rf feeds/${OMR_KERNEL}/packages/net/iperf3
 [ -d ${OMR_FEED}/golang ] && rm -rf feeds/${OMR_KERNEL}/packages/lang/golang
 
+echo "Add Occitan translation support"
+if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
+	patch -N -p1 -s < patches/luci-occitan.patch
+	#sh feeds/luci/build/i18n-add-language.sh oc
+fi
+[ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
 echo "Done"
 
 echo "开始编译qsdk 5.4 ipq6x咯"
 cd "$OMR_TARGET/source"
+echo "开始下载dl文件"
+#如果文件不存在，则创建文件
+tempFile="dl.zip"
+if [ ! -f "$tempFile" ]; then
+wget http://55860.com/bak/dl.zip
+unzip -q -o dl.zip
+fi
+
+echo "开始编译qsdk 5.4 ipq6x咯"
+            rm -rf package/kernel/mac80211
+            tar zxvf package/kernel/mac80211.ipq60xx.tar.gz -C package/kernel/
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
@@ -533,8 +545,6 @@ scripts/feeds update -a
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
-	scripts/feeds install -a -d m -p qaa
-	scripts/feeds install -a -d m -p lenn
 fi
 if [ -n "$CUSTOM_FEED" ]; then
 	scripts/feeds install -a -d m -p openmptcprouter
