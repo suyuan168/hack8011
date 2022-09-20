@@ -520,20 +520,7 @@ if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
 fi
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
 echo "Done"
-
-echo "开始编译qsdk 5.4 ipq6x咯"
 cd "$OMR_TARGET/source"
-echo "开始下载dl文件"
-#如果文件不存在，则创建文件
-tempFile="dl.zip"
-if [ ! -f "$tempFile" ]; then
-wget http://55860.com/bak/dl.zip
-unzip -q -o dl.zip
-fi
-
-echo "开始编译qsdk 5.4 ipq6x咯"
-            rm -rf package/kernel/mac80211
-            tar zxvf package/kernel/mac80211.ipq60xx.tar.gz -C package/kernel/
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
