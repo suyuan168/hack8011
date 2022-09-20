@@ -520,7 +520,7 @@ if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
 fi
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
 echo "Done"
-chmod -R 777 source
+chmod -R 777 "$OMR_TARGET/source"
 cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
