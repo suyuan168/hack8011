@@ -526,6 +526,7 @@ echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
+ln -s "$OMR_TARGET/source/feeds/ipq807x/ipq807x" "$OMR_TARGET/source/target/linux/ipq807x" 
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
 ##if ! patch -Rf -N -p1 -s --dry-run < patches/fullconenat-luci.patch; then
@@ -546,7 +547,7 @@ else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
 scripts/feeds install -a
-ln -s feeds/ipq807x/ipq807x target/linux/ipq807x
+
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
