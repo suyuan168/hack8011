@@ -104,8 +104,8 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/routing https://github.com/openwrt/routing "a0d61bddb3ce4ca54bd76af86c28f58feb6cc044"
 		_get_repo feeds/telephony https://github.com/openwrt/telephony "0183c1adda0e7581698b0ea4bff7c08379acf447"
 		_get_repo feeds/ipq807x https://github.com/suyuan168/ipq807x "master"
-		_get_repo feeds/ax-wifi https://github.com/suyuan168/ax-wifi "master"
-		_get_repo feeds/gl-feeds https://github.com/suyuan168/gl-feeds "master"
+		_get_repo feeds/axwifi https://github.com/suyuan168/axwifi "master"
+		_get_repo feeds/glfeeds https://github.com/suyuan168/glfeeds "master"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
@@ -156,8 +156,8 @@ src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/routing)
 src-link telephony $(readlink -f feeds/telephony)
 src-link ipq807x $(readlink -f feeds/ipq807x)
-src-link ax-wifi $(readlink -f feeds/ax-wifi)
-src-link gl-feeds $(readlink -f feeds/gl-feeds)
+src-link axwifi $(readlink -f feeds/axwifi)
+src-link glfeeds $(readlink -f feeds/glfeeds)
 EOF
 
 if [ -n "$CUSTOM_FEED" ]; then
@@ -520,6 +520,7 @@ if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
 fi
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
 echo "Done"
+chmod -R 777 source
 cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
