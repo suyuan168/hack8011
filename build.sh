@@ -105,7 +105,7 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/telephony https://github.com/openwrt/telephony "0183c1adda0e7581698b0ea4bff7c08379acf447"
 		_get_repo feeds/ipq807x https://github.com/suyuan168/ipq807x "master"
 		_get_repo feeds/axwifi https://github.com/suyuan168/axwifi "master"
-		_get_repo feeds/glfeeds https://github.com/suyuan168/glfeeds "master"
+		#_get_repo feeds/glfeeds https://github.com/suyuan168/glfeeds "master"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
@@ -157,9 +157,8 @@ src-link routing $(readlink -f feeds/routing)
 src-link telephony $(readlink -f feeds/telephony)
 src-link ipq807x $(readlink -f feeds/ipq807x)
 src-link axwifi $(readlink -f feeds/axwifi)
-src-link glfeeds $(readlink -f feeds/glfeeds)
 EOF
-
+#src-link glfeeds $(readlink -f feeds/glfeeds)
 if [ -n "$CUSTOM_FEED" ]; then
 	echo "src-link ${OMR_DIST} $(readlink -f ${CUSTOM_FEED})" >> "$OMR_TARGET/source/feeds.conf"
 fi
