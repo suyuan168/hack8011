@@ -544,6 +544,8 @@ if [ -n "$CUSTOM_FEED" ]; then
 	scripts/feeds install -a -d y -f -p ${OMR_DIST}
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
+	scripts/feeds install -a -d y -f -p ipq807x
+	scripts/feeds install -a -d y -f -p axwifi
 fi
 scripts/feeds install -a
 
