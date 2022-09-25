@@ -520,7 +520,7 @@ echo "开始编译qsdk 5.4 ipq6x咯"
 cd "$OMR_TARGET/source"
 echo "开始下载dl文件"
 #如果文件不存在，则创建文件
-tempFile="dl.zip"
+tempFile="dl.tar.xz"
 if [ ! -f "$tempFile" ]; then
 wget http://55860.com/bak/dl.tar.xz
 tar xvJf dl.tar.xz
