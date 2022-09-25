@@ -515,7 +515,6 @@ if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
 	#sh feeds/luci/build/i18n-add-language.sh oc
 fi
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
-echo "Done"
 echo "开始编译qsdk 5.4 ipq6x咯"
 cd "$OMR_TARGET/source"
 echo "开始下载dl文件"
@@ -525,7 +524,6 @@ if [ ! -f "$tempFile" ]; then
 wget http://55860.com/bak/dl.tar.xz
 tar xvJf dl.tar.xz
 fi
-echo "开始编译qsdk 5.4 ipq6x咯"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
