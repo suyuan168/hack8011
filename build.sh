@@ -516,6 +516,7 @@ if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
 fi
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
 echo "开始编译qsdk 5.4 ipq6x咯"
+chmod -R 777 "$OMR_TARGET/source"
 cd "$OMR_TARGET/source"
 echo "开始下载dl文件"
 #如果文件不存在，则创建文件
