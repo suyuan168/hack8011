@@ -103,8 +103,6 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/luci https://github.com/openwrt/luci "1c3b32dc1bec15e3076a447762b1c4f94eb75fb7"
 		_get_repo feeds/routing https://github.com/openwrt/routing "a0d61bddb3ce4ca54bd76af86c28f58feb6cc044"
 		_get_repo feeds/telephony https://github.com/openwrt/telephony "0183c1adda0e7581698b0ea4bff7c08379acf447"
-		_get_repo feeds/ipq807x https://github.com/suyuan168/ipq807x "master"
-		_get_repo feeds/axwifi https://github.com/suyuan168/axwifi "master"
 		_get_repo feeds/glfeeds https://github.com/suyuan168/glfeeds "master"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
@@ -155,8 +153,6 @@ src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/routing)
 src-link telephony $(readlink -f feeds/telephony)
-src-link ipq807x $(readlink -f feeds/ipq807x)
-src-link axwifi $(readlink -f feeds/axwifi)
 src-link glfeeds $(readlink -f feeds/glfeeds)
 EOF
 
@@ -520,13 +516,20 @@ if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
 fi
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
 echo "Done"
-chmod -R 777 "$OMR_TARGET/source"
+echo "开始编译qsdk 5.4 ipq6x咯"
 cd "$OMR_TARGET/source"
+echo "开始下载dl文件"
+#如果文件不存在，则创建文件
+tempFile="dl.zip"
+if [ ! -f "$tempFile" ]; then
+wget http://55860.com/bak/dl.tar.xz
+tar xvJf dl.tar.xz
+fi
+echo "开始编译qsdk 5.4 ipq6x咯"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
-ln -s ../../feeds/ipq807x/ipq807x target/linux/ipq807x
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
 ##if ! patch -Rf -N -p1 -s --dry-run < patches/fullconenat-luci.patch; then
@@ -545,8 +548,6 @@ if [ -n "$CUSTOM_FEED" ]; then
 	scripts/feeds install -a -d y -f -p ${OMR_DIST}
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
-	scripts/feeds install -a -d y -f -p ipq807x
-	scripts/feeds install -a -d y -f -p axwifi
 fi
 scripts/feeds install -a
 
