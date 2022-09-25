@@ -32,7 +32,7 @@ OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 #OMR_UEFI=${OMR_UEFI:-yes}
-OMR_PACKAGES=${OMR_PACKAGES:-full}
+OMR_PACKAGES=${OMR_PACKAGES:-zuixiao}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
@@ -229,6 +229,9 @@ if [ "$OMR_PACKAGES" = "full" ]; then
 fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/source/.config"
+fi
+if [ "$OMR_PACKAGES" = "zuixiao" ]; then
+	echo "CONFIG_PACKAGE_${OMR_DIST}-zuixiao=y" >> "$OMR_TARGET/source/.config"
 fi
 
 if [ "$SHORTCUT_FE" = "yes" ] && [ "$OMR_KERNEL" = "5.15" ]; then
