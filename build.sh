@@ -103,7 +103,7 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/luci https://github.com/openwrt/luci "1c3b32dc1bec15e3076a447762b1c4f94eb75fb7"
 		_get_repo feeds/routing https://github.com/openwrt/routing "a0d61bddb3ce4ca54bd76af86c28f58feb6cc044"
 		_get_repo feeds/telephony https://github.com/openwrt/telephony "0183c1adda0e7581698b0ea4bff7c08379acf447"
-		#_get_repo feeds/glfeeds https://github.com/suyuan168/glfeeds "master"
+		_get_repo feeds/glfeeds https://github.com/suyuan168/glfeeds "master"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
@@ -153,9 +153,10 @@ src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/routing)
 src-link telephony $(readlink -f feeds/telephony)
+src-link glfeeds $(readlink -f feeds/glfeeds)
 EOF
 
-#src-link glfeeds $(readlink -f feeds/glfeeds)
+
 if [ -n "$CUSTOM_FEED" ]; then
 	echo "src-link ${OMR_DIST} $(readlink -f ${CUSTOM_FEED})" >> "$OMR_TARGET/source/feeds.conf"
 fi
