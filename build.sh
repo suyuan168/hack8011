@@ -98,7 +98,7 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/source" https://github.com/suyuan168/glopenwrt6018 "master"
+		_get_repo "$OMR_TARGET/source" https://github.com/suyuan168/glopenwrt6018 "test"
 		_get_repo feeds/packages https://github.com/openwrt/packages "78bcd00c13587571b5c79ed2fc3363aa674aaef7"
 		_get_repo feeds/luci https://github.com/openwrt/luci "1c3b32dc1bec15e3076a447762b1c4f94eb75fb7"
 		_get_repo feeds/routing https://github.com/openwrt/routing "a0d61bddb3ce4ca54bd76af86c28f58feb6cc044"
