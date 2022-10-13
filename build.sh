@@ -99,10 +99,10 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
 		_get_repo "$OMR_TARGET/source" https://github.com/suyuan168/glopenwrt6018 "master"
-		_get_repo feeds/packages https://github.com/openwrt/packages "78bcd00c13587571b5c79ed2fc3363aa674aaef7"
-		_get_repo feeds/luci https://github.com/openwrt/luci "1c3b32dc1bec15e3076a447762b1c4f94eb75fb7"
-		_get_repo feeds/routing https://github.com/openwrt/routing "a0d61bddb3ce4ca54bd76af86c28f58feb6cc044"
-		_get_repo feeds/telephony https://github.com/openwrt/telephony "0183c1adda0e7581698b0ea4bff7c08379acf447"
+		_get_repo feeds/packages https://github.com/openwrt/packages "47d63847e1eda46633eb3d369e221e8845a82f7c"
+		_get_repo feeds/luci https://github.com/openwrt/luci "e01e38cf822b77ee9735da1d519f7eb1c48cce19"
+		_get_repo feeds/routing https://github.com/openwrt/routing "25e76489c83cfcee61e36a491896e1e9bfc3ec13"
+		_get_repo feeds/telephony https://github.com/openwrt/telephony "89cc8fccf757614eac1d45a684f4971393e0d984"
 		#_get_repo feeds/glfeeds https://github.com/suyuan168/glfeeds "master"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
