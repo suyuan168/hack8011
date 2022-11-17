@@ -162,6 +162,8 @@ cat > "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf" <<EOF
 src-link packages $(readlink -f feeds/${OMR_KERNEL}/packages)
 src-link luci $(readlink -f feeds/${OMR_KERNEL}/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
+src-link routing $(readlink -f feeds/${OMR_KERNEL}/routing)
+src-link telephony $(readlink -f feeds/${OMR_KERNEL}s/telephony)
 EOF
 
 if [ -n "$CUSTOM_FEED" ]; then
