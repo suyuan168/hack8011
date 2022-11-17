@@ -670,10 +670,7 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 
 echo "Add Occitan translation support"
 cd feeds/${OMR_KERNEL}
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
-	patch -N -p1 -s < ../../patches/luci-occitan.patch
-	#sh feeds/luci/build/i18n-add-language.sh oc
-fi
+
 cd ../..
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/${OMR_KERNEL}/luci/modules/luci-base/po/
 echo "开始编译qsdk 5.4 ipq6x咯"
