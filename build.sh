@@ -643,7 +643,7 @@ if [ ! -f "$tempFile" ]; then
 wget http://55860.com/bak/dl.tar.xz
 tar xvJf dl.tar.xz
 fi
-chmod -R 777 feeds/openmptcprouter
+
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
