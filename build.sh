@@ -634,7 +634,6 @@ cd ../..
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/${OMR_KERNEL}/luci/modules/luci-base/po/
 echo "Done"
 echo "开始编译qsdk 5.4 ipq6x咯"
-chmod -R 777 "$OMR_TARGET/${OMR_KERNEL}/source"
 cd "$OMR_TARGET/${OMR_KERNEL}/source"
 echo "开始下载dl文件"
 #如果文件不存在，则创建文件
