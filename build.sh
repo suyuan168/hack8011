@@ -661,7 +661,8 @@ scripts/feeds update -a
 #fi
 #echo "Done"
 #cd "$OMR_TARGET/${OMR_KERNEL}/source"
-
+scripts/feeds install -a -d y -f -p ipq807x
+scripts/feeds install -a -d y -f -p axwifi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
@@ -672,8 +673,6 @@ if [ -n "$CUSTOM_FEED" ]; then
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
-scripts/feeds install -a -d y -f -p ipq807x
-scripts/feeds install -a -d y -f -p axwifi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
