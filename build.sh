@@ -156,10 +156,10 @@ cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<
 EOF
 
 cat > "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf" <<EOF
-src-link ipq807x $(readlink -f feeds/${OMR_KERNEL}/ipq807x)
-src-link axwifi $(readlink -f feeds/${OMR_KERNEL}/axwifi)
 src-link packages $(readlink -f feeds/${OMR_KERNEL}/packages)
 src-link luci $(readlink -f feeds/${OMR_KERNEL}/luci)
+src-link ipq807x $(readlink -f feeds/${OMR_KERNEL}/ipq807x)
+src-link axwifi $(readlink -f feeds/${OMR_KERNEL}/axwifi)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/${OMR_KERNEL}/routing)
 src-link telephony $(readlink -f feeds/${OMR_KERNEL}/telephony)
