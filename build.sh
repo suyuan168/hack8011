@@ -672,6 +672,7 @@ if [ -n "$CUSTOM_FEED" ]; then
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
+scripts/feeds install -a
 scripts/feeds install -a -d y -f -p ipq807x
 scripts/feeds install -a -d y -f -p axwifi
 cp .config.keep .config
