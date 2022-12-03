@@ -673,11 +673,8 @@ else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
 scripts/feeds install -a
-<<<<<<< HEAD
 scripts/feeds install -a -d y -f -p ipq807x
 scripts/feeds install -a -d y -f -p axwifi
-=======
->>>>>>> parent of 930d080 (Update build.sh)
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
