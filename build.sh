@@ -154,7 +154,7 @@ cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<
 EOF
 
 cat > "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf" <<EOF
-src-link wifi-ax ../package/wifi-ax
+src-link wifi_ax ../package/wifi_ax
 src-link ipq807x ../package/ipq807x
 src-link packages $(readlink -f feeds/${OMR_KERNEL}/packages)
 src-link luci $(readlink -f feeds/${OMR_KERNEL}/luci)
@@ -671,7 +671,7 @@ else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
 scripts/feeds install -a
-scripts/feeds install -a -d y -f -p wifi-ax
+scripts/feeds install -a -d y -f -p wifi_ax
 scripts/feeds install -a -d y -f -p ipq807x
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
