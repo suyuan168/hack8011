@@ -154,7 +154,6 @@ cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<
 EOF
 
 cat > "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf" <<EOF
-src-include defaults feeds.conf.default
 src-link wifi-ax ../package/wifi-ax
 src-link ipq807x ../package/ipq807x
 src-link packages $(readlink -f feeds/${OMR_KERNEL}/packages)
