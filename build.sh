@@ -98,7 +98,6 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/suyuan168/glopenwrt6018 "master"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "556d2c56e9623930ba5c9a46dcc606b1dddc3d7c"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "782c7b6c1d06540bd5e63f7663d7f29ef309c771"
 		_get_repo feeds/${OMR_KERNEL}/routing https://github.com/openwrt/routing "4e2bdb42f672eb19d5433baee4f71fdb81c4954c"
 		_get_repo feeds/${OMR_KERNEL}/telephony https://github.com/openwrt/telephony "e2f370462421e20cccf09aa155cb78e6ff60d0c0"
 	else
@@ -154,9 +153,11 @@ cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<
 EOF
 
 cat > "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf" <<EOF
-src-link packages $(readlink -f feeds/${OMR_KERNEL}/packages)
-src-link luci $(readlink -f feeds/${OMR_KERNEL}/luci)
+src-include defaults feeds.conf.default
 src-link wifi_ax ../package/wifi-ax
+src-link ipq807x ../package/ipq807x
+src-link packages $(readlink -f feeds/${OMR_KERNEL}/packages)
+src-git luci https://github.com/openwrt/luci.git^782c7b6c1d06540bd5e63f7663d7f29ef309c771
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/${OMR_KERNEL}/routing)
 src-link telephony $(readlink -f feeds/${OMR_KERNEL}/telephony)
@@ -670,7 +671,8 @@ else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
 scripts/feeds install -a
-scripts/feeds install -a -d y -f -p axwifi
+scripts/feeds install -a -d y -f -p wifi_ax
+scripts/feeds install -a -d y -f -p ipq807x
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
