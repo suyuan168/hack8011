@@ -32,12 +32,12 @@ OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 #OMR_UEFI=${OMR_UEFI:-yes}
-OMR_PACKAGES=${OMR_PACKAGES:-zuixiao}
+OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
-OMR_TARGET=${OMR_TARGET:-x86_64}
+OMR_TARGET=${OMR_TARGET:-6018}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 UPSTREAM=${UPSTREAM:-no}
-OMR_KERNEL=${OMR_KERNEL:-5.4}
+OMR_KERNEL=${OMR_KERNEL:-5.15}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
 #OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
@@ -45,7 +45,7 @@ OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-coun
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE-$OMR_KERNEL/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/suyuan168/openmptcprouter-feeds}"
-OMR_FEED_SRC="${OMR_FEED_SRC:-ipq60xx}"
+OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
 CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 
