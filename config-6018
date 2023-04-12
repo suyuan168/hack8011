@@ -80,6 +80,7 @@ CONFIG_DEFAULT_kmod-qca-nss-drv=y
 CONFIG_DEFAULT_kmod-qca-nss-drv-bridge-mgr=y
 CONFIG_DEFAULT_kmod-qca-ssdk=y
 CONFIG_DEFAULT_kmod-qrtr_mproc=y
+CONFIG_DEFAULT_kmod-usb-dwc3-qcom=y
 CONFIG_DEFAULT_kmod-usb-dwc3-qcom-internal=y
 CONFIG_DEFAULT_kmod-usb-phy-ipq807x=y
 CONFIG_DEFAULT_kmod-usb3=y
