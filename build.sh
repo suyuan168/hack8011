@@ -32,7 +32,7 @@ OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 #OMR_UEFI=${OMR_UEFI:-yes}
-OMR_PACKAGES=${OMR_PACKAGES:-zuixiao}
+OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
@@ -45,7 +45,7 @@ OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-coun
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE-$OMR_KERNEL/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/suyuan168/openmptcprouter-feeds}"
-OMR_FEED_SRC="${OMR_FEED_SRC:-ipq60xx}"
+OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
 CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 
@@ -96,11 +96,11 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/suyuan168/glopenwrt6018 "master"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "openwrt-21.02"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "openwrt-21.02"
-		_get_repo feeds/${OMR_KERNEL}/routing https://github.com/openwrt/routing "openwrt-21.02"
-		_get_repo feeds/${OMR_KERNEL}/telephony https://github.com/openwrt/telephony "openwrt-21.02"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/suyuan168/glopenwrt6018 "ipq60xxdevelop"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "bc718f43bf58949ed9832480bf971f6a9e9e9ae3"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "537a1e4f49d1e6bf167be76b606d8bdf2199e9ee"
+		_get_repo feeds/${OMR_KERNEL}/routing https://github.com/openwrt/routing "bdf923742a6d7be293be48631ce7b4fc2e05141a"
+		_get_repo feeds/${OMR_KERNEL}/telephony https://github.com/openwrt/telephony "7983fb1401c37a91db69a0840e906482bb61bf6a"
 	else
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "0d43c22d47b91fd64fea707290f9dce3ba2a273f"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "8762261112c8235f7f85a6f57dbf342cf17093b9"
@@ -154,13 +154,11 @@ cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<
 EOF
 
 cat > "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf" <<EOF
-src-link wifi_ax ../package/wifi_ax
-src-link ipq807x ../package/ipq807x
 src-link packages $(readlink -f feeds/${OMR_KERNEL}/packages)
 src-link luci $(readlink -f feeds/${OMR_KERNEL}/luci)
-src-link openmptcprouter $(readlink -f "$OMR_FEED")
 src-link routing $(readlink -f feeds/${OMR_KERNEL}/routing)
 src-link telephony $(readlink -f feeds/${OMR_KERNEL}/telephony)
+src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
 if [ -n "$CUSTOM_FEED" ]; then
@@ -638,14 +636,6 @@ echo "Done"
 echo "开始编译qsdk 5.4 ipq6x咯"
 chmod -R 777 "$OMR_TARGET/${OMR_KERNEL}/source"
 cd "$OMR_TARGET/${OMR_KERNEL}/source"
-echo "开始下载dl文件"
-#如果文件不存在，则创建文件
-tempFile="dl.tar.xz"
-if [ ! -f "$tempFile" ]; then
-wget http://55860.com/bak/dl.tar.xz
-tar xvJf dl.tar.xz
-fi
-
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
