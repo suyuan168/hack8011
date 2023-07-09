@@ -37,7 +37,7 @@ OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 UPSTREAM=${UPSTREAM:-no}
-OMR_KERNEL=${OMR_KERNEL:-5.4}
+OMR_KERNEL=${OMR_KERNEL:-6.1}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
 #OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
@@ -94,7 +94,7 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	if [ "$OMR_KERNEL" = "5.4" ]; then
+	if [ "$OMR_KERNEL" = "6.1" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/suyuan168/glopenwrt6018 "ipq60xxdevelop"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "bc718f43bf58949ed9832480bf971f6a9e9e9ae3"
