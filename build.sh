@@ -97,10 +97,10 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "6.1" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/suyuan168/glopenwrt6018 "ipq60xxdevelop"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "bc718f43bf58949ed9832480bf971f6a9e9e9ae3"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "537a1e4f49d1e6bf167be76b606d8bdf2199e9ee"
-		_get_repo feeds/${OMR_KERNEL}/routing https://github.com/openwrt/routing "bdf923742a6d7be293be48631ce7b4fc2e05141a"
-		_get_repo feeds/${OMR_KERNEL}/telephony https://github.com/openwrt/telephony "7983fb1401c37a91db69a0840e906482bb61bf6a"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "master"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
+		_get_repo feeds/${OMR_KERNEL}/routing https://github.com/openwrt/routing "master"
+		_get_repo feeds/${OMR_KERNEL}/telephony https://github.com/openwrt/telephony "master"
 	else
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "0d43c22d47b91fd64fea707290f9dce3ba2a273f"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "8762261112c8235f7f85a6f57dbf342cf17093b9"
