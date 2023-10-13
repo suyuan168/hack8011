@@ -27,7 +27,7 @@ _get_repo() (
 )
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
-OMR_HOST=${OMR_HOST:-55860.com}
+OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
@@ -72,6 +72,12 @@ elif [ "$OMR_TARGET" = "bpi-r1" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "5gx3" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "zbt4019" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "l1000" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "rutx" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r64" ]; then
@@ -101,11 +107,23 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
 		_get_repo feeds/${OMR_KERNEL}/routing https://github.com/openwrt/routing "master"
 		_get_repo feeds/${OMR_KERNEL}/telephony https://github.com/openwrt/telephony "master"
+#	elif [ "$OMR_KERNEL" = "6.1" ]; then
+#		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
+#		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "master"
+#		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "0d43c22d47b91fd64fea707290f9dce3ba2a273f"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "8762261112c8235f7f85a6f57dbf342cf17093b9"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "a1ee78fa696e13ad4e19c0252eb345500d4ab3ee"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "e11d00d44c66b1534fbc399fda55951cd0a2168a"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "0d8fc4124cf60cce3133a8dcc218411c8ce9565b"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "b683ff3ea2bbd49a38b12bab4225440ba3de5ff5"
 	fi
+elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
+	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
+	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "master"
+	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
+elif [ "$OMR_OPENWRT" = "coolsnowwolf" ]; then
+	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
+	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/coolsnowwolf/packages "master"
+	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/coolsnowwolf/luci "master"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "master"
@@ -140,8 +158,9 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
 
-rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 
+	echo "cp -rf ${OMR_KERNEL}/* $OMR_TARGET/${OMR_KERNEL}/source"
+	cp -rf ${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source"
 
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
@@ -149,6 +168,8 @@ cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<
  VERSION:     $OMR_RELEASE
  TARGET:      $OMR_TARGET
  ARCH:        $OMR_REAL_TARGET
+
+ BUILD REPO:  $(git config --get remote.origin.url)
  BUILD DATE:  $(date -u)
 -----------------------------------------------------
 EOF
@@ -235,24 +256,24 @@ fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
-if [ "$OMR_PACKAGES" = "zuixiao" ]; then
-	echo "CONFIG_PACKAGE_${OMR_DIST}-zuixiao=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-fi
 
-if [ "$SHORTCUT_FE" = "yes" ] && [ "${OMR_KERNEL}" = "5.4" ]; then
-	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-	echo "CONFIG_PACKAGE_kmod-fast-classifier-noload=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-	echo "CONFIG_PACKAGE_kmod-shortcut-fe-cm=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+if [ "$SHORTCUT_FE" = "yes" ]; then
+	echo "CONFIG_PACKAGE_kmod-fast-classifier=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "CONFIG_PACKAGE_kmod-shortcut-fe=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut-fe-cm=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_PACKAGE_shortcut-fe-drv=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 else
 	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-fast-classifier-noload is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-shortcut-fe-cm is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-shortcut-fe is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "# CONFIG_PACKAGE_shortcut-fe is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "x86" ]; then
 	echo "# CONFIG_PACKAGE_kmod-r8125 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+fi
+if [ "$OMR_KERNEL" = "6.1" ]; then
+	echo "# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
 if [ "$OMR_TARGET" = "rutx" -a "$OMR_KERNEL" = "5.4" ]; then
@@ -270,7 +291,6 @@ if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
 	sed -i "s/CONFIG_MC_CHARSET=y/# CONFIG_MC_CHARSET is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	sed -i "s/CONFIG_MC_VFS=y/# CONFIG_MC_VFS is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"	
 	echo "done"
-
 	# 2021-03-05 Oliver Welter <oliver@welter.rocks>
 fi
 
@@ -350,7 +370,7 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	done
 	echo "done"
 fi
-
+chmod -R 777 "$OMR_TARGET/${OMR_KERNEL}/source"
 cd "$OMR_TARGET/${OMR_KERNEL}/source"
 
 #if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
@@ -384,6 +404,12 @@ echo "Checking if Nanqinlang patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nanqinlang.patch; then
 	echo "apply..."
 	patch -N -p1 -s < ../../../patches/nanqinlang.patch
+fi
+echo "Done"
+
+echo "Checking if Meson patch is set or not"
+if [ "$OMR_KERNEL" = "5.4" ] && ! patch -Rf -N -p1 -s --dry-run < ../../../patches/meson.patch; then
+	patch -N -p1 -s < ../../../patches/meson.patch
 fi
 echo "Done"
 
@@ -542,6 +568,7 @@ fi
 #if [ -f target/linux/bcm27xx/patches-5.15/950-0785-dtoverlays-Connect-the-backlight-to-the-pitft35-disp.patch ]; then
 #	rm -f target/linux/bcm27xx/patches-5.15/950-0785-dtoverlays-Connect-the-backlight-to-the-pitft35-disp.patch
 #fi
+NOT_SUPPORTED="0"
 
 if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Set to kernel 5.4 for rpi arch"
@@ -560,15 +587,16 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	if [ -f package/kernel/mac80211/patches/build/firmware-replace-HOTPLUG-with-UEVENT-in-FW_ACTION-defines.patch ]; then
 		rm -f package/kernel/mac80211/patches/build/firmware-replace-HOTPLUG-with-UEVENT-in-FW_ACTION-defines.patch
 	fi
-	if [ -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch ]; then
-		rm -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch
-	fi
+	#if [ -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch ]; then
+	#	rm -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch
+	#fi
 	if [ -f target/linux/mvebu/patches-5.4/021-arm64-dts-marvell-armada-37xx-Move-PCIe-comphy-handl.patch ]; then
 		rm -f target/linux/mvebu/patches-5.4/021-arm64-dts-marvell-armada-37xx-Move-PCIe-comphy-handl.patch
 	fi
 	if [ -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch ]; then
 		rm -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch
 	fi
+	#rm -f target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/rk3568-photonicat.dts
 	echo "CONFIG_VERSION_CODE=5.4" >> ".config"
 fi
 if [ "$OMR_KERNEL" = "5.15" ]; then
@@ -617,6 +645,60 @@ if [ "$OMR_KERNEL" = "5.15" ]; then
 		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
 	fi
 fi
+if [ "$OMR_KERNEL" = "6.1" ]; then
+	echo "Set to kernel 6.1 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=6.1%g' {} \;
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.1 for rockchip arch (R2S/R4S)"
+	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.1 for qualcommax"
+	find target/linux/qualcommax -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.1 for bcm27xx"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.1 for mvebu"
+	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.1 for mediatek"
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.1 for ipq806x"
+	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	rm -f package/kernel/rtl8812au-ct/patches/002-*
+	rm -f package/kernel/rtl8812au-ct/patches/003-*
+	rm -f package/kernel/rtl8812au-ct/patches/004-*
+	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
+	rm -f target/linux/bcm27xx/modules/sound.mk
+	rm -f package/libs/elfutils/patches/101-no-fts.patch
+	rm -f package/kernel/mwlwifi/patches/001-*
+	rm -f package/kernel/mwlwifi/patches/002-*
+	rm -f package/kernel/mwlwifi/patches/003-*
+	rm -rf package/kernel/mt76
+
+#	echo "CONFIG_DEVEL=y" >> ".config"
+#	echo "CONFIG_NEED_TOOLCHAIN=y" >> ".config"
+#	echo "CONFIG_TOOLCHAINOPTS=y" >> ".config"
+#	echo 'CONFIG_BINUTILS_VERSION_2_36_1=y' >> ".config"
+#	echo 'CONFIG_BINUTILS_VERSION="2.36.1"' >> ".config"
+#	echo "CONFIG_BINUTILS_USE_VERSION_2_36_1=y" >> ".config"
+#	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
+#	#echo "CONFIG_GCC_VERSION_10=y" >> ".config"
+#	#echo 'CONFIG_GCC_VERSION="10.3.0"' >> ".config"
+	echo "CONFIG_VERSION_CODE=6.1" >> ".config"
+#	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
+	if [ "$TARGET" = "bpi-r2" ]; then
+		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
+	fi
+	if [ "$OMR_TARGET" != "x86" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "r4s" ] && [ "$OMR_TARGET" != "r5s" ] && [ "$OMR_TARGET" != "8072" ] && [ "$OMR_TARGET" != "rpi4" ] && [ "$OMR_TARGET" != "rpi3" ] && [ "$OMR_TARGET" != "wrt32x" ] && [ "$OMR_TARGET" != "wrt3200acm" ] && [ "$OMR_TARGET" != "bpi-r64" ] && [ "$OMR_TARGET" != "r7800" ]; then
+		echo "Sorry but kernel 6.1 is not supported on your arch yet"
+		NOT_SUPPORTED="1"
+		#exit 1
+	fi
+fi
 
 #rm -rf feeds/packages/libs/libwebp
 cd "../../.."
@@ -631,11 +713,14 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 
 echo "Add Occitan translation support"
 cd feeds/${OMR_KERNEL}
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
+	patch -N -p1 -s < ../../patches/luci-occitan.patch
+	#sh feeds/luci/build/i18n-add-language.sh oc
+fi
 cd ../..
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/${OMR_KERNEL}/luci/modules/luci-base/po/
 echo "Done"
-echo "开始编译qsdk 5.4 ipq6x咯"
-chmod -R 777 "$OMR_TARGET/${OMR_KERNEL}/source"
+
 cd "$OMR_TARGET/${OMR_KERNEL}/source"
 echo "Update feeds index"
 cp .config .config.keep
@@ -662,13 +747,11 @@ else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
 scripts/feeds install -a
-scripts/feeds install -a -d y -f -p wifi_ax
-scripts/feeds install -a -d y -f -p ipq807x
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
 
-if [ ! -f "../../../$OMR_TARGET_CONFIG" ]; then
+if [ ! -f "../../../$OMR_TARGET_CONFIG" ] || [ "$NOT_SUPPORTED" = "1" ]; then
 	echo "Target $OMR_TARGET not found ! You have to configure and compile your kernel manually."
 	exit 1
 fi
