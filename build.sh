@@ -197,6 +197,8 @@ else
 	# There is many customization to support rutx and this seems to break other ipq40xx, so dirty workaround for now
 #	[ -d "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" ] && mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
 #	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+	echo "cp -rf common/* $OMR_TARGET/${OMR_KERNEL}/source"
+	cp -rf common/* "$OMR_TARGET/${OMR_KERNEL}/source"
 	echo "cp -rf ${OMR_KERNEL}/* $OMR_TARGET/${OMR_KERNEL}/source"
 	cp -rf ${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source"
 #	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
