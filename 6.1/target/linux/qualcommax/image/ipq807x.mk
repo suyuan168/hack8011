@@ -87,6 +87,7 @@ define Device/pangu_l8072v2
 	PAGESIZE := 2048
 	DEVICE_DTS_CONFIG := config@hk07
 	SOC := ipq8072
+	DEVICE_PACKAGES += ipq-wifi-qnap_301w
 endef
 TARGET_DEVICES += pangu_l8072v2
 

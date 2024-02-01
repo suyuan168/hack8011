@@ -92,18 +92,21 @@
 			label = "green:5g1pwr";
 			gpios = <&tlmm 56 GPIO_ACTIVE_LOW>;
 			color = <LED_COLOR_ID_GREEN>;
+			default-state = "on";  // 设置为 "off" 表示默认为低电平
 		};
 
 		5g2pwr {
 			label = "green:5g2pwr";
 			gpios = <&tlmm 55 GPIO_ACTIVE_LOW>;
 			color = <LED_COLOR_ID_GREEN>;
+			default-state = "on";  // 设置为 "off" 表示默认为低电平
 		};
 
 		5g3pwr {
 			label = "green:5g3pwr";
 			gpios = <&tlmm 54 GPIO_ACTIVE_LOW>;
 			color = <LED_COLOR_ID_GREEN>;
+			default-state = "on";  // 设置为 "off" 表示默认为低电平
 		};
 
 		lan {
@@ -134,24 +137,6 @@
 			label = "green:dianliang";
 			gpios = <&tlmm 2 GPIO_ACTIVE_HIGH>;
 			color = <LED_COLOR_ID_GREEN>;
-		};
-	};
-};
-
-&tlmm {
-	mdio_pins: mdio-pins {
-		mdc {
-			pins = "gpio68";
-			function = "mdc";
-			drive-strength = <8>;
-			bias-pull-up;
-		};
-
-		mdio {
-			pins = "gpio69";
-			function = "mdio";
-			drive-strength = <8>;
-			bias-pull-up;
 		};
 	};
 };
@@ -190,6 +175,37 @@
 			function = "mdio";
 			drive-strength = <8>;
 			bias-pull-up;
+		};
+	};
+
+	pcie0_pins: pcie0_pins {
+		pcie0_rst {
+			pins = "gpio58";
+			function = "pcie0_rst";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+		pcie0_wake {
+			pins = "gpio59";
+			function = "pcie0_wake";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+	};
+
+	pcie1_pins: pcie1_pins {
+		pcie1_rst {
+			pins = "gpio61";
+			function = "pcie1_rst";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		pcie1_wake {
+			pins = "gpio62";
+			function = "pcie1_wake";
+			drive-strength = <8>;
+			bias-pull-down;
 		};
 	};
 
@@ -415,14 +431,6 @@
 	status = "okay";
 };
 
-&dwc_0 {
-	snps,parkmode-disable-ss-quirk;
-};
-
-&dwc_1 {
-	snps,parkmode-disable-ss-quirk;
-};
-
 &mdio {
 	status = "okay";
 	pinctrl-0 = <&mdio_pins>;
@@ -442,6 +450,7 @@
 	qca8081: ethernet-phy@28 {
 		compatible = "ethernet-phy-id004d.d101";
 		reg = <28>;
+		reset-deassert-us = <10000>;
 		reset-gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
 	};
 };
@@ -502,6 +511,30 @@
 	status = "okay";
 
 	perst-gpio = <&tlmm 58 GPIO_ACTIVE_LOW>;
+
+	bridge@0,0 {
+		reg = <0x00000000 0 0 0 0>;
+		#address-cells = <3>;
+		#size-cells = <2>;
+		ranges;
+	};
+};
+
+&pcie_qmp1 {
+	status = "okay";
+};
+
+&pcie1 {
+	status = "okay";
+
+	perst-gpio = <&tlmm 61 GPIO_ACTIVE_LOW>;
+
+	bridge@1,0 {
+		reg = <0x00010000 0 0 0 0>;
+		#address-cells = <3>;
+		#size-cells = <2>;
+		ranges;
+	};
 };
 
 &wifi {
