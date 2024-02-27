@@ -45,7 +45,7 @@ OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-coun
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE-$OMR_KERNEL/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/suyuan168/openmptcprouter_feeds}"
-OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
+OMR_FEED_SRC="${OMR_FEED_SRC:-main}"
 
 CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 CUSTOM_FEED_URL_BRANCH="${CUSTOM_FEED_URL_BRANCH:-main}"
@@ -94,6 +94,10 @@ elif [ "$OMR_TARGET" = "bpi-r64" ]; then
 elif [ "$OMR_TARGET" = "espressobin" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "6018" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a53"
+	elif [ "$OMR_TARGET" = "z8102ax" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a53"
+elif [ "$OMR_TARGET" = "8072" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "x86" ]; then
 	OMR_REAL_TARGET="i386_pentium4"
@@ -199,6 +203,10 @@ else
 	cp -rf ${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source"
 #	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
 #	mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
+fi
+if [ -n "$CUSTOM_FEED" ] && [ -d ${CUSTOM_FEED}/source/${OMR_TARGET}/${OMR_KERNEL} ]; then
+	echo "Copy ${CUSTOM_FEED}/source/${OMR_TARGET}/${OMR_KERNEL}/* to $OMR_TARGET/${OMR_KERNEL}/source"
+	cp -rf ${CUSTOM_FEED}/source/${OMR_TARGET}/${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source"
 fi
 
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
@@ -871,6 +879,9 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	scripts/feeds uninstall netifd
 	scripts/feeds install iproute2
 	scripts/feeds install netifd
+#else
+#	scripts/feeds uninstall rust
+#	scripts/feeds install -p packages rust
 fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
