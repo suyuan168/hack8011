@@ -90,7 +90,7 @@ CONFIG_EXTERNAL_CPIO=""
 #
 # CONFIG_TARGET_ROOTFS_CPIOGZ is not set
 # CONFIG_TARGET_ROOTFS_TARGZ is not set
-
+# CONFIG_PACKAGE_kmod-pf-ring is not set
 #
 # Root filesystem images
 #
