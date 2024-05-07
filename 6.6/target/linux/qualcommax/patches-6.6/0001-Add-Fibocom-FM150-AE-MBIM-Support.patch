@@ -1,0 +1,61 @@
+diff -uprN a/drivers/bus/mhi/host/pci_generic.c b/drivers/bus/mhi/host/pci_generic.c
+--- a/drivers/bus/mhi/host/pci_generic.c	2024-04-29 18:51:06.887926016 +0800
++++ b/drivers/bus/mhi/host/pci_generic.c	2024-04-29 18:55:57.498090754 +0800
+@@ -420,6 +419,45 @@ static const struct mhi_pci_dev_info mhi
+ 	.sideband_wake = false,
+ };
+ 
++static const struct mhi_channel_config mhi_fibocom_sdx55_channels[] = {
++	MHI_CHANNEL_CONFIG_UL(0, "LOOPBACK", 32, 0),
++	MHI_CHANNEL_CONFIG_DL(1, "LOOPBACK", 32, 0),
++	MHI_CHANNEL_CONFIG_UL(4, "DIAG", 32, 1),
++	MHI_CHANNEL_CONFIG_DL(5, "DIAG", 32, 1),
++	MHI_CHANNEL_CONFIG_UL(14, "QMI", 32, 0),
++	MHI_CHANNEL_CONFIG_DL(15, "QMI", 32, 0),
++	MHI_CHANNEL_CONFIG_UL(32, "DUN", 32, 0),
++	MHI_CHANNEL_CONFIG_DL(33, "DUN", 32, 0),
++	MHI_CHANNEL_CONFIG_HW_UL(100, "IP_HW0", 128, 2),
++	MHI_CHANNEL_CONFIG_HW_DL(101, "IP_HW0", 128, 3),
++};
++
++static struct mhi_event_config mhi_fibocom_sdx55_events[] = {
++	MHI_EVENT_CONFIG_CTRL(0, 128),
++	MHI_EVENT_CONFIG_DATA(1, 128),
++	MHI_EVENT_CONFIG_HW_DATA(2, 1024, 100),
++	MHI_EVENT_CONFIG_HW_DATA(3, 1024, 101)
++};
++
++static const struct mhi_controller_config modem_fibocom_sdx55_config = {
++	.max_channels = 128,
++	.timeout_ms = 20000,
++	.num_channels = ARRAY_SIZE(mhi_fibocom_sdx55_channels),
++	.ch_cfg = mhi_fibocom_sdx55_channels,
++	.num_events = ARRAY_SIZE(mhi_fibocom_sdx55_events),
++	.event_cfg = mhi_fibocom_sdx55_events,
++};
++
++static const struct mhi_pci_dev_info mhi_fibocom_sdx55_info = {
++	.name = "fibocom-sdx55",
++	.fw = "qcom/sdx55m/sbl1.mbn",
++	.edl = "qcom/sdx55m/edl.mbn",
++	.config = &modem_fibocom_sdx55_config,
++	.bar_num = MHI_PCI_DEFAULT_BAR_NUM,
++	.dma_data_width = 32,
++	.sideband_wake = false,
++};
++
+ static const struct mhi_channel_config mhi_mv3x_channels[] = {
+ 	MHI_CHANNEL_CONFIG_UL(0, "LOOPBACK", 64, 0),
+ 	MHI_CHANNEL_CONFIG_DL(1, "LOOPBACK", 64, 0),
+@@ -582,6 +622,11 @@ static const struct mhi_pci_dev_info mhi
+ static const struct pci_device_id mhi_pci_id_table[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_QCOM, 0x0304),
+ 		.driver_data = (kernel_ulong_t) &mhi_qcom_sdx24_info },
++	/* FM150AE(sdx55)*/
++	{ PCI_DEVICE_SUB(PCI_VENDOR_ID_QCOM, 0x0306, 0x1cf8, 0x5502),
++		.driver_data = (kernel_ulong_t) &mhi_fibocom_sdx55_info },
++	{ PCI_DEVICE_SUB(PCI_VENDOR_ID_QCOM, 0x0306, PCI_VENDOR_ID_QCOM, 0x010c),
++		.driver_data = (kernel_ulong_t) &mhi_fibocom_sdx55_info },
+ 	{ PCI_DEVICE_SUB(PCI_VENDOR_ID_QCOM, 0x0306, PCI_VENDOR_ID_QCOM, 0x010c),
+ 		.driver_data = (kernel_ulong_t) &mhi_foxconn_sdx55_info },
+ 	/* EM919x (sdx55), use the same vid:pid as qcom-sdx55m */
