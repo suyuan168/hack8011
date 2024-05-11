@@ -333,10 +333,11 @@
 	 * printing warnings due to the broken way bootloader adds the
 	 * partitions.
 	 */
+
+
 	partitions {
 		status = "disabled";
 	};
-
 	flash@0 {
 		#address-cells = <1>;
 		#size-cells = <1>;
@@ -470,9 +471,7 @@
 	 * printing warnings due to the broken way bootloader adds the
 	 * partitions.
 	 */
-	partitions {
-		status = "disabled";
-	};
+	 
 
 	nand@0 {
 		reg = <0>;
