@@ -937,7 +937,6 @@ if [ -n "$CUSTOM_FEED" ]; then
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
-scripts/feeds install -a
 # Use iproute2 package from the normal repo for 5.4
 if [ "$OMR_KERNEL" = "5.4" ]; then
 	scripts/feeds uninstall iproute2
