@@ -233,6 +233,8 @@ src-link luci $(readlink -f feeds/${OMR_KERNEL}/luci)
 src-link routing $(readlink -f feeds/${OMR_KERNEL}/routing)
 src-link telephony $(readlink -f feeds/${OMR_KERNEL}/telephony)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
+src-git nss https://github.com/qosmio/nss-packages;NSS-12.5-K6.x
+src-git sqm_scripts_nss https://github.com/qosmio/sqm-scripts-nss.git
 EOF
 
 if [ -n "$CUSTOM_FEED" ]; then
@@ -966,12 +968,17 @@ scripts/feeds update -a
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
+	
 fi
 if [ -n "$CUSTOM_FEED" ]; then
 	scripts/feeds install -a -d m -p openmptcprouter
 	scripts/feeds install -a -d y -f -p ${OMR_DIST}
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
+	scripts/feeds install -a -d y -f -p nss
+	scripts/feeds install -a -d y -f -p sqm_scripts_nss
+	scripts/feeds install -a -d y -f -p routing
+	scripts/feeds install -a -d y -f -p telephony
 fi
 # Use iproute2 package from the normal repo for 5.4
 if [ "$OMR_KERNEL" = "5.4" ]; then
