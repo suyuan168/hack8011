@@ -1,3 +1,4 @@
+
 #!/bin/sh
 #
 # Copyright (C) 2017 OVH OverTheBox
@@ -55,6 +56,7 @@ OMR_OPENWRT=${OMR_OPENWRT:-default}
 
 OMR_FORCE_DSA=${OMR_FORCE_DSA:-0}
 
+
 if [ "$OMR_KERNEL" = "5.4" ] && [ "$OMR_TARGET" = "rutx12" ]; then
 	OMR_TARGET_CONFIG="config-rutx"
 fi
@@ -84,11 +86,13 @@ elif [ "$OMR_TARGET" = "rutx12" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "rutx50" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "5gx3" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r64" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "espressobin" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
-elif [ "$OMR_TARGET" = "z8102ax" ]; then
+elif [ "$OMR_TARGET" = "z8102ax_128m" ] || [ "$OMR_TARGET" = "z8102ax_648m" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "8072" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
@@ -185,12 +189,11 @@ if [ "${OMR_KERNEL}" = "5.4" ]; then
 fi
 echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
-[ "${OMR_KERNEL}" = "6.1" ] || [ "${OMR_KERNEL}" = "6.6" ] || [ "${OMR_KERNEL}" = "6.7" ] && {
-	echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
-	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
-}
 [ "${OMR_KERNEL}" = "6.1" ] && {
 	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/target/linux/bcm27xx/patches-6.1"
+}
+[ "${OMR_KERNEL}" = "6.6" ] && {
+	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/libs/mbedtls"
 }
 
 [ "${OMR_KERNEL}" = "5.4" ] && rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
@@ -310,6 +313,19 @@ if [ "$OMR_PACKAGES" = "full" ]; then
 fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+fi
+
+if [ "$SYSLOG" = "busybox-syslogd" ]; then
+	echo "CONFIG_BUSYBOX_CONFIG_FEATURE_SYSLOG=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_BUSYBOX_CONFIG_FEATURE_SYSLOGD_CFG=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_BUSYBOX_CONFIG_FEATURE_SYSLOGD_PRECISE_TIMESTAMP=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_BUSYBOX_CONFIG_FEATURE_SYSLOGD_READ_BUFFER_SIZE=256" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_BUSYBOX_CONFIG_FEATURE_REMOTE_LOG=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_BUSYBOX_CONFIG_SYSLOGD=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_BUSYBOX_CONFIG_LOGREAD=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_PACKAGE_syslogd=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+elif [ "$SYSLOG" = "syslog-ng" ]; then
+	echo "CONFIG_PACKAGE_syslog-ng=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
 if [ "$SHORTCUT_FE" = "yes" ]; then
@@ -448,12 +464,21 @@ cd "$OMR_TARGET/${OMR_KERNEL}/source"
 #	echo "Done"
 #fi
 
-echo "Checking if No check patch is set or not"
-if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.patch; then
-	echo "apply..."
-	patch -N -p1 -s < ../../../patches/nocheck.patch
+if [ "$OMR_KERNEL" != "6.6" ]; then
+	echo "Checking if No check patch is set or not"
+	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.patch; then
+		echo "apply..."
+		patch -N -p1 -s < ../../../patches/nocheck.patch
+	fi
+	echo "Done"
+else
+	echo "Checking if No check patch is set or not"
+	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.6.6.patch; then
+		echo "apply..."
+		patch -N -p1 -s < ../../../patches/nocheck.6.6.patch
+	fi
+	echo "Done"
 fi
-echo "Done"
 
 echo "Checking if Nanqinlang patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nanqinlang.patch; then
@@ -760,8 +785,6 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	#rm -f package/kernel/mwlwifi/patches/002-*
 	#rm -f package/kernel/mwlwifi/patches/003-*
 	#rm -rf package/kernel/mt76
-	rm -rf target/linux/ipq40xx/files/drivers/net/dsa
-	rm -rf target/linux/ipq40xx/files/drivers/net/ethernet
 
 #	echo "CONFIG_DEVEL=y" >> ".config"
 #	echo "CONFIG_NEED_TOOLCHAIN=y" >> ".config"
@@ -818,8 +841,6 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
 	echo "Done"
 
-	[ -d target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom ] && mv -f target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom/* target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/ && rm -fr target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom
-	#echo "CONFIG_VERSION_CODE=6.6" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
@@ -833,7 +854,9 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
 	echo "CONFIG_KERNEL_DEBUG_INFO=y" >> ".config"
 	echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> ".config"
+	echo "CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES=y" >> ".config"
 	echo "# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set" >> ".config"
+	echo "CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH=y" >> ".config"
 	# Remove for now packages that doesn't compile
 	#rm -rf package/kernel/mt76
 	#rm -rf package/kernel/rtl8812au-ct
@@ -881,8 +904,21 @@ fi
 #rm -rf feeds/packages/libs/libwebp
 cd "../../.."
 rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
+
+if [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-mod-status ]; then
+	rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
+elif [ "$OMR_KERNEL" = "6.6" ]; then
+	cd feeds/${OMR_KERNEL}
+
+	cd -
+else
+	cd feeds/${OMR_KERNEL}
+
+	cd -
+fi
+
 [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
-#[ -d feeds/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/${OMR_KERNEL}/luci/protocols/luci-proto-modemmanager
+[ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/${OMR_KERNEL}/luci/protocols/luci-proto-modemmanager
 #if [ -d ${OMR_FEED}/netifd ] && [ "${OMR_KERNEL}" != "5.4" ]; then
 #	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/config/netifd
 #fi
