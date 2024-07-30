@@ -970,6 +970,8 @@ scripts/feeds update -a
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
+	scripts/feeds install -a -d m -p routing
+	scripts/feeds install -a -d m -p telephony
 	
 fi
 if [ -n "$CUSTOM_FEED" ]; then
@@ -979,8 +981,6 @@ else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 	scripts/feeds install -a -d y -f -p nss
 	scripts/feeds install -a -d y -f -p sqm_scripts_nss
-	scripts/feeds install -a -d y -f -p routing
-	scripts/feeds install -a -d y -f -p telephony
 fi
 # Use iproute2 package from the normal repo for 5.4
 if [ "$OMR_KERNEL" = "5.4" ]; then
