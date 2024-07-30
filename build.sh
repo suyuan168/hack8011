@@ -235,8 +235,8 @@ src-link luci $(readlink -f feeds/${OMR_KERNEL}/luci)
 src-link routing $(readlink -f feeds/${OMR_KERNEL}/routing)
 src-link telephony $(readlink -f feeds/${OMR_KERNEL}/telephony)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
-src-link routing $(readlink -f feeds/${OMR_KERNEL}/nss)
-src-link telephony $(readlink -f feeds/${OMR_KERNEL}/sqm_scripts_nss)
+src-link nss $(readlink -f feeds/${OMR_KERNEL}/nss)
+src-link sqm_scripts_nss $(readlink -f feeds/${OMR_KERNEL}/sqm_scripts_nss)
 EOF
 
 if [ -n "$CUSTOM_FEED" ]; then
