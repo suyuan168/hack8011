@@ -141,8 +141,8 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
 		_get_repo feeds/${OMR_KERNEL}/routing https://github.com/openwrt/routing "master"
 		_get_repo feeds/${OMR_KERNEL}/telephony https://github.com/openwrt/telephony "master"
-		_get_repo feeds/${OMR_KERNEL}/nss https://github.com/qosmio/nss-packages;NSS-12.5-K6.x
-		_get_repo feeds/${OMR_KERNEL}/sqm_scripts_nss https://github.com/qosmio/sqm-scripts-nss.git
+		_get_repo feeds/${OMR_KERNEL}/nss https://github.com/qosmio/nss-packages "NSS-12.5-K6.x"
+		_get_repo feeds/${OMR_KERNEL}/sqm_scripts_nss https://github.com/qosmio/sqm-scripts-nss "main"
 	fi
 elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
