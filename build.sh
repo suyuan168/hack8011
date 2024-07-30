@@ -141,6 +141,8 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
 		_get_repo feeds/${OMR_KERNEL}/routing https://github.com/openwrt/routing "master"
 		_get_repo feeds/${OMR_KERNEL}/telephony https://github.com/openwrt/telephony "master"
+		_get_repo feeds/${OMR_KERNEL}/nss https://github.com/qosmio/nss-packages;NSS-12.5-K6.x
+		_get_repo feeds/${OMR_KERNEL}/sqm_scripts_nss https://github.com/qosmio/sqm-scripts-nss.git
 	fi
 elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
@@ -233,8 +235,8 @@ src-link luci $(readlink -f feeds/${OMR_KERNEL}/luci)
 src-link routing $(readlink -f feeds/${OMR_KERNEL}/routing)
 src-link telephony $(readlink -f feeds/${OMR_KERNEL}/telephony)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
-src-git nss https://github.com/qosmio/nss-packages;NSS-12.5-K6.x
-src-git sqm_scripts_nss https://github.com/qosmio/sqm-scripts-nss.git
+src-link routing $(readlink -f feeds/${OMR_KERNEL}/nss)
+src-link telephony $(readlink -f feeds/${OMR_KERNEL}/sqm_scripts_nss)
 EOF
 
 if [ -n "$CUSTOM_FEED" ]; then
