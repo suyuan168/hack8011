@@ -947,8 +947,6 @@ scripts/feeds update -a
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
-	scripts/feeds install -a -d m -p routing
-	scripts/feeds install -a -d m -p telephony
 fi
 if [ -n "$CUSTOM_FEED" ]; then
 	scripts/feeds install -a -d m -p openmptcprouter
