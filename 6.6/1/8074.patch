@@ -1,0 +1,1559 @@
+diff --git a/package/firmware/ipq-wifi/Makefile b/package/firmware/ipq-wifi/Makefile
+index 86e2337e00..ed95a4a2ff 100644
+--- a/package/firmware/ipq-wifi/Makefile
++++ b/package/firmware/ipq-wifi/Makefile
+@@ -27,6 +27,7 @@ endef
+ # <https://wireless.wiki.kernel.org/en/users/drivers/ath10k/boardfiles>
+ 
+ ALLWIFIBOARDS:= \
++        aliyun_xglink5g \
+ 	8devices_mango \
+ 	arcadyan_aw1000 \
+ 	buffalo_wxr-5950ax12 \
+@@ -145,6 +146,7 @@ endef
+ # Board files should follow this name structure:
+ #   board-<devicename>.<qca4019|qca9888|qca9889|qca9984|qca99x0|ipq8074>
+ 
++$(eval $(call generate-ipq-wifi-package,aliyun_xglink5g,ALIYUN XGLINK5G))
+ $(eval $(call generate-ipq-wifi-package,8devices_mango,8devices Mango))
+ $(eval $(call generate-ipq-wifi-package,arcadyan_aw1000,Arcadyan AW1000))
+ $(eval $(call generate-ipq-wifi-package,buffalo_wxr-5950ax12,Buffalo WXR-5950AX12))
+diff --git a/package/firmware/ipq-wifi/src/board-aliyun_xglink5g.ipq8074 b/package/firmware/ipq-wifi/src/board-aliyun_xglink5g.ipq8074
+new file mode 100644
+index 0000000000..39498dbda4
+Binary files /dev/null and b/package/firmware/ipq-wifi/src/board-aliyun_xglink5g.ipq8074 differ
+diff --git a/package/kernel/linux/modules/video.mk b/package/kernel/linux/modules/video.mk
+index b282d7695c..0389382ca7 100644
+--- a/package/kernel/linux/modules/video.mk
++++ b/package/kernel/linux/modules/video.mk
+@@ -223,6 +223,20 @@ endef
+ 
+ $(eval $(call KernelPackage,fb-tft))
+ 
++define KernelPackage/fb-tft-st7789v
++  SUBMENU:=$(VIDEO_MENU)
++  TITLE:=FB driver for the ST7789V LCD Controller
++  DEPENDS:=+kmod-fb-tft
++  KCONFIG:=CONFIG_FB_TFT_ST7789V
++  FILES:=$(LINUX_DIR)/drivers/staging/fbtft/fb_st7789v.ko
++  AUTOLOAD:=$(call AutoLoad,09,fb_st7789v)
++endef
++
++define KernelPackage/fb-tft-st7789v/description
++  FB driver for the ST7789V LCD Controller
++endef
++
++$(eval $(call KernelPackage,fb-tft-st7789v))
+ 
+ define KernelPackage/fb-tft-ili9486
+   SUBMENU:=$(VIDEO_MENU)
+diff --git a/target/linux/qualcommax/Makefile b/target/linux/qualcommax/Makefile
+index ab7f52ae04..058fa6387e 100644
+--- a/target/linux/qualcommax/Makefile
++++ b/target/linux/qualcommax/Makefile
+@@ -3,7 +3,7 @@ include $(TOPDIR)/rules.mk
+ ARCH:=aarch64
+ BOARD:=qualcommax
+ BOARDNAME:=Qualcomm Atheros 802.11ax WiSoC-s
+-FEATURES:=squashfs ramdisk fpu nand rtc emmc
++FEATURES:=squashfs ramdisk fpu nand rtc emmc display gpio
+ KERNELNAME:=Image dtbs
+ CPU_TYPE:=cortex-a53
+ SUBTARGETS:=ipq807x ipq60xx
+diff --git a/target/linux/qualcommax/config-6.6 b/target/linux/qualcommax/config-6.6
+index 71b54041c5..98f9b9c19e 100644
+--- a/target/linux/qualcommax/config-6.6
++++ b/target/linux/qualcommax/config-6.6
+@@ -141,6 +141,7 @@ CONFIG_DTC=y
+ CONFIG_DT_IDLE_STATES=y
+ CONFIG_EDAC_SUPPORT=y
+ CONFIG_EXCLUSIVE_SYSTEM_RAM=y
++CONFIG_FB_DEVICE=y
+ CONFIG_FIXED_PHY=y
+ CONFIG_FIX_EARLYCON_MEM=y
+ CONFIG_FRAME_POINTER=y
+@@ -183,6 +184,7 @@ CONFIG_GENERIC_STRNCPY_FROM_USER=y
+ CONFIG_GENERIC_STRNLEN_USER=y
+ CONFIG_GENERIC_TIME_VSYSCALL=y
+ CONFIG_GLOB=y
++CONFIG_GPIOLIB=y
+ CONFIG_GPIOLIB_IRQCHIP=y
+ CONFIG_GPIO_CDEV=y
+ CONFIG_HARDIRQS_SW_RESEND=y
+diff --git a/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-l8072v2.dts b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-l8072v2.dts
+new file mode 100755
+index 0000000000..52c9c43ab8
+--- /dev/null
++++ b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-l8072v2.dts
+@@ -0,0 +1,583 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++/* Copyright 2023 Nokia */
++/* 55860.com Power 175338101@qq.com */
++
++/dts-v1/;
++
++#include "ipq8074.dtsi"
++#include "ipq8074-hk-cpu.dtsi"
++#include "ipq8074-ess.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	model = "openmptcprouter_5GX3_L8074V2";
++	compatible = "pangu,l8072v2", "qcom,ipq8074";
++
++	aliases {
++		serial0 = &blsp1_uart5;
++		led-boot = &pwr;
++		led-failsafe = &sys;
++		led-running = &pwr;
++		led-upgrade = &sys;
++		/* Aliases as required by u-boot to patch MAC addresses */
++		ethernet0 = &dp2;
++		ethernet1 = &dp3;
++		ethernet2 = &dp6;
++		label-mac-device = &dp2;
++	};
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++		bootargs-append = " root=/dev/ubiblock0_1";
++	};
++
++	keys {
++		compatible = "gpio-keys";
++
++		reset {
++			label = "reset";
++			gpios = <&tlmm 34 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RESTART>;
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		wifi1 {
++			label = "green:wlan2g";
++			gpios = <&tlmm 42 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++
++		wifi0 {
++			label = "green:wlan5g";
++			gpios = <&tlmm 43 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++
++		sys: sys {
++			label = "green:sys";
++			gpios = <&tlmm 26 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++
++		pwr: pwr {
++			label = "green:pwr";
++			gpios = <&tlmm 33 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++
++		5g1 {
++			label = "green:5g1";
++			gpios = <&tlmm 46 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++
++		5g2 {
++			label = "green:5g2";
++			gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++
++		5g3 {
++			label = "green:5g3";
++			gpios = <&tlmm 48 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++		
++		5g1pwr {
++			label = "green:5g1pwr";
++			gpios = <&tlmm 56 GPIO_ACTIVE_LOW>;
++			color = <LED_COLOR_ID_GREEN>;
++			default-state = "on";  // 设置为 "off" 表示默认为低电平
++		};
++
++		5g2pwr {
++			label = "green:5g2pwr";
++			gpios = <&tlmm 55 GPIO_ACTIVE_LOW>;
++			color = <LED_COLOR_ID_GREEN>;
++			default-state = "on";  // 设置为 "off" 表示默认为低电平
++		};
++
++		5g3pwr {
++			label = "green:5g3pwr";
++			gpios = <&tlmm 54 GPIO_ACTIVE_LOW>;
++			color = <LED_COLOR_ID_GREEN>;
++			default-state = "on";  // 设置为 "off" 表示默认为低电平
++		};
++
++		lan {
++			label = "green:lan";
++			gpios = <&tlmm 49 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++
++		wan {
++			label = "green:wan";
++			gpios = <&tlmm 27 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++		
++		vpn {
++			label = "green:vpn";
++			gpios = <&tlmm 25 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++
++		fengshan {
++			label = "green:fengshan";
++			gpios = <&tlmm 53 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++		
++		dianliang {
++			label = "green:dianliang";
++			gpios = <&tlmm 2 GPIO_ACTIVE_HIGH>;
++			color = <LED_COLOR_ID_GREEN>;
++		};
++	};
++};
++
++&tlmm {
++	mdio_pins: mdio-pins {
++		mdc {
++			pins = "gpio68";
++			function = "mdc";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++
++		mdio {
++			pins = "gpio69";
++			function = "mdio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++	};
++	pcie0_pins: pcie0_pins {
++		pcie0_rst {
++			pins = "gpio58";
++			function = "pcie0_rst";
++			drive-strength = <8>;
++			bias-pull-down;
++		};
++
++		pcie0_wake {
++			pins = "gpio59";
++			function = "pcie0_wake";
++			drive-strength = <8>;
++			bias-pull-down;
++		};
++	};
++
++	pcie1_pins: pcie1_pins {
++		pcie1_rst {
++			pins = "gpio61";
++			function = "pcie1_rst";
++			drive-strength = <8>;
++			bias-pull-down;
++		};
++
++		pcie1_wake {
++			pins = "gpio62";
++			function = "pcie1_wake";
++			drive-strength = <8>;
++			bias-pull-down;
++		};
++	};
++};
++
++&blsp1_uart5 {
++	status = "okay";
++};
++
++&prng {
++	status = "okay";
++};
++
++&cryptobam {
++	status = "okay";
++};
++
++&crypto {
++	status = "okay";
++};
++
++&qpic_bam {
++	status = "okay";
++};
++
++&tlmm {
++	mdio_pins: mdio-pins {
++		mdc {
++			pins = "gpio68";
++			function = "mdc";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++
++		mdio {
++			pins = "gpio69";
++			function = "mdio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++	};
++
++	i2c_1_pins: i2c-1-state {
++		pins = "gpio50", "gpio51";
++		function = "blsp3_i2c";
++		drive-strength = <8>;
++		bias-disable;
++	};
++};
++
++&blsp1_spi1 {
++	pinctrl-0 = <&spi_0_pins>;
++	pinctrl-names = "default";
++	cs-gpios = <0>;
++	status = "okay";
++
++	/*
++	 * Bootloader will find the NAND DT node by the compatible and
++	 * then "fixup" it by adding the partitions from the SMEM table
++	 * using the legacy bindings thus making it impossible for us
++	 * to change the partition table or utilize NVMEM for calibration.
++	 * So add a dummy partitions node that bootloader will populate
++	 * and set it as disabled so the kernel ignores it instead of
++	 * printing warnings due to the broken way bootloader adds the
++	 * partitions.
++	 */
++	partitions {
++		status = "disabled";
++	};
++
++	flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		reg = <0>;
++		compatible = "jedec,spi-nor";
++		spi-max-frequency = <50000000>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "0:sbl1";
++				reg = <0x0 0x50000>;
++				read-only;
++			};
++
++			partition@50000 {
++				label = "0:mibib";
++				reg = <0x50000 0x10000>;
++				read-only;
++			};
++
++			partition@60000 {
++				label = "0:bootconfig";
++				reg = <0x60000 0x20000>;
++				read-only;
++			};
++
++			partition@80000 {
++				label = "0:bootconfig1";
++				reg = <0x80000 0x20000>;
++				read-only;
++			};
++
++			partition@a0000 {
++				label = "0:qsee";
++				reg = <0xa0000 0x180000>;
++				read-only;
++			};
++
++			partition@220000 {
++				label = "0:qsee_1";
++				reg = <0x220000 0x180000>;
++				read-only;
++			};
++
++			partition@3a0000 {
++				label = "0:devcfg";
++				reg = <0x3a0000 0x10000>;
++				read-only;
++			};
++
++			partition@3b0000 {
++				label = "0:devcfg_1";
++				reg = <0x3b0000 0x10000>;
++				read-only;
++			};
++
++			partition@3c0000 {
++				label = "0:apdp";
++				reg = <0x3c0000 0x10000>;
++				read-only;
++			};
++
++			partition@3d0000 {
++				label = "0:apdp_1";
++				reg = <0x3d0000 0x10000>;
++				read-only;
++			};
++
++			partition@3e0000 {
++				label = "0:rpm";
++				reg = <0x3e0000 0x40000>;
++				read-only;
++			};
++
++			partition@420000 {
++				label = "0:rpm_1";
++				reg = <0x420000 0x40000>;
++				read-only;
++			};
++
++			partition@460000 {
++				label = "0:cdt";
++				reg = <0x460000 0x10000>;
++				read-only;
++			};
++
++			partition@470000 {
++				label = "0:cdt_1";
++				reg = <0x470000 0x10000>;
++				read-only;
++			};
++
++			partition@480000 {
++				label = "0:appsblenv";
++				reg = <0x480000 0x10000>;
++			};
++
++			partition@490000 {
++				label = "0:appsbl";
++				reg = <0x490000 0xb0000>;
++			};
++
++			partition@540000 {
++				label = "0:appsbl_1";
++				reg = <0x540000 0xb0000>;
++			};
++
++			partition@610000 {
++				label = "0:art";
++				reg = <0x5f0000 0x40000>;	
++			};
++			partition@630000 {
++				label = "0:ethphyfw";
++				reg = <0x630000 0x80000>;
++			};			
++		};
++	};
++};
++
++&qpic_nand {
++	status = "okay";
++	
++	/*
++	 * Bootloader will find the NAND DT node by the compatible and
++	 * then "fixup" it by adding the partitions from the SMEM table
++	 * using the legacy bindings thus making it impossible for us
++	 * to change the partition table or utilize NVMEM for calibration.
++	 * So add a dummy partitions node that bootloader will populate
++	 * and set it as disabled so the kernel ignores it instead of
++	 * printing warnings due to the broken way bootloader adds the
++	 * partitions.
++	 */
++	partitions {
++		status = "disabled";
++	};
++
++	nand@0 {
++		reg = <0>;
++		nand-ecc-strength = <8>;
++		nand-ecc-step-size = <512>;
++		nand-bus-width = <8>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "rootfs";
++				reg = <0x0000000 0xf800000>;
++			};
++
++			partition@3400000 {
++				label = "0:WIFIFW";
++				reg = <0xf800000 0x800000>;
++			};
++		};
++	};
++};
++
++&blsp1_i2c4 {
++	pinctrl-0 = <&i2c_1_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++};
++
++&qusb_phy_0 {
++	status = "okay";
++};
++
++&qusb_phy_1 {
++	status = "okay";
++};
++
++&ssphy_0 {
++	status = "okay";
++};
++
++&ssphy_1 {
++	status = "okay";
++};
++
++&usb_0 {
++	status = "okay";
++};
++
++&usb_1 {
++	status = "okay";
++};
++
++&dwc_0 {
++	snps,parkmode-disable-ss-quirk;
++};
++
++&dwc_1 {
++	snps,parkmode-disable-ss-quirk;
++};
++
++&mdio {
++	status = "okay";
++	pinctrl-0 = <&mdio_pins>;
++	pinctrl-names = "default";
++	reset-gpios = <&tlmm 37 GPIO_ACTIVE_LOW>;
++	
++	ethernet-phy-package@0 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		compatible = "qcom,qca8075-package";
++		reg = <0>;
++
++		qca8075_1: ethernet-phy@1 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <1>;
++		};
++
++		qca8075_2: ethernet-phy@2 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <2>;
++		};
++	};
++	
++	qca8081: ethernet-phy@28 {
++		compatible = "ethernet-phy-id004d.d101";
++		reg = <28>;
++		reset-gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
++	};
++
++};
++
++&switch {
++	status = "okay";
++
++	switch_lan_bmp = <(ESS_PORT2 | ESS_PORT3)>; /* lan port bitmap */
++	switch_wan_bmp = <ESS_PORT6>; /* wan port bitmap */
++	switch_mac_mode = <MAC_MODE_PSGMII>; /* mac mode for uniphy instance0*/
++	switch_mac_mode2 = <MAC_MODE_USXGMII>; /* mac mode for uniphy instance2*/
++	
++
++	qcom,port_phyinfo {
++		port@2 {
++			port_id = <2>;
++			phy_address = <1>;
++		};
++		port@3 {
++			port_id = <3>;
++			phy_address = <2>;
++		};
++		port@6 {
++			port_id = <6>;
++			phy_address = <28>;
++			port_mac_sel = "QGMAC_PORT";
++		};
++	};
++};
++
++&edma {
++	status = "okay";
++};
++
++&dp2 {
++        status = "okay";
++        phy-handle = <&qca8075_1>;
++        label = "lan1";
++};
++
++&dp3 {
++        status = "okay";
++        phy-handle = <&qca8075_2>;
++        label = "lan2";
++};
++
++&dp6 {
++        status = "okay";
++        phy-handle = <&qca8081>;
++        label = "wan";
++};
++
++&pcie_qmp0 {
++	status = "okay";
++};
++
++&pcie0 {
++	status = "okay";
++
++	pinctrl-0 = <&pcie0_pins>;
++	pinctrl-names = "default";
++
++	perst-gpio = <&tlmm 58 GPIO_ACTIVE_LOW>;
++
++	bridge@0,0 {
++		reg = <0x00020000 0 0 0 0>;
++		#address-cells = <3>;
++		#size-cells = <2>;
++		ranges;
++	};
++};
++
++&pcie_qmp1 {
++	status = "okay";
++};
++
++&pcie1 {
++	status = "okay";
++
++	pinctrl-0 = <&pcie1_pins>;
++	pinctrl-names = "default";
++
++	perst-gpio = <&tlmm 61 GPIO_ACTIVE_LOW>;
++
++	bridge@1,0 {
++		reg = <0x00010000 0 0 0 0>;
++		#address-cells = <3>;
++		#size-cells = <2>;
++		ranges;
++
++	};
++};
++
++&wifi {
++	status = "okay";
++	qcom,ath11k-calibration-variant = "QNAP-301w";
++};
+\ No newline at end of file
+diff --git a/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-xglink5g.dts b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-xglink5g.dts
+new file mode 100755
+index 0000000000..1c16be8f25
+--- /dev/null
++++ b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-xglink5g.dts
+@@ -0,0 +1,601 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++/* Copyright (c) 2023, Chukun Pan <amadeus@jmu.edu.cn> */
++
++/dts-v1/;
++
++#include "ipq8074.dtsi"
++#include "ipq8074-hk-cpu.dtsi"
++#include "ipq8074-ess.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	model = "openmptcprouter 5GX4";
++	compatible = "aliyun,xglink5g", "qcom,ipq8074";
++
++	aliases {
++		serial0 = &blsp1_uart5;
++		serial1 = &blsp1_uart3;
++		serial2 = &blsp1_uart6;
++		sdhc1 = &sdhc_1;
++		/*
++		 * Aliases as required by u-boot
++		 * to patch MAC addresses
++		 */
++
++		ethernet0 = &dp3;
++		ethernet1 = &dp4;
++		ethernet2 = &dp5;
++		label-mac-device = &dp3;
++	};
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++		bootargs-append = " root=/dev/ubiblock0_1";
++	};
++
++	keys {
++		compatible = "gpio-keys";
++		pinctrl-0 = <&button_pins>;
++		pinctrl-names = "default";
++
++		reset {
++			label = "reset";
++			linux,code = <KEY_RESTART>;
++			gpios = <&tlmm 27 GPIO_ACTIVE_LOW>;
++		};
++	};
++};
++
++&tlmm {
++	mdio_pins: mdio-pins {
++		mdc {
++			pins = "gpio68";
++			function = "mdc";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++
++		mdio {
++			pins = "gpio69";
++			function = "mdio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++	};
++
++	button_pins: button_pins {
++		reset {
++			pins = "gpio27";
++			function = "gpio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++	};
++
++	pcie0_pins: pcie0_pins {
++		pcie0_rst {
++			pins = "gpio58";
++			function = "pcie0_rst";
++			drive-strength = <8>;
++			bias-pull-down;
++		};
++
++		pcie0_wake {
++			pins = "gpio59";
++			function = "pcie0_wake";
++			drive-strength = <8>;
++			bias-pull-down;
++		};
++
++		pw_resets {
++			pins = "gpio26";
++			function = "gpio";
++			drive-strength = <8>;
++			bias-pull-up;
++			output-high;
++		};
++
++		pw {
++			pins = "gpio25";
++			function = "gpio";
++			drive-strength = <8>;
++			bias-pull-up;
++			output-high;
++		};
++	};
++
++	pcie1_pins: pcie1_pins {
++		pcie1_rst {
++			pins = "gpio61";
++			function = "pcie1_rst";
++			drive-strength = <8>;
++			bias-pull-down;
++		};
++
++		pcie1_wake {
++			pins = "gpio62";
++			function = "pcie1_wake";
++			drive-strength = <8>;
++			bias-pull-down;
++		};
++
++		pw_resets {
++			pins = "gpio29";
++			function = "gpio";
++			drive-strength = <8>;
++			bias-pull-up;
++			output-high;
++		};
++
++		pw {
++			pins = "gpio30";
++			function = "gpio";
++			drive-strength = <8>;
++			bias-pull-up;
++			output-high;
++		};
++	};
++
++	spi_3_pins: spi_3_pins {
++		mux {
++			pins = "gpio50", "gpio51", "gpio52", "gpio53";
++			function = "blsp3_spi";
++			drive-strength = <8>;
++			bias-disable;
++		};
++
++		dc {
++			pins = "gpio42";
++			function = "gpio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++
++		reset {
++			pins = "gpio43";
++			function = "gpio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++	};
++
++	hsuart_232_pins: hsuart-232-state {
++		pins = "gpio48", "gpio49";
++		function = "blsp2_uart";
++		drive-strength = <8>;
++		bias-disable;
++	};
++
++	hsuart_485_pins: hsuart-485-state {
++		pins = "gpio9", "gpio16";
++		function = "blsp5_uart";
++		drive-strength = <8>;
++		bias-disable;
++	};
++
++	i2c_0_pins: i2c-0-state {
++		pins = "gpio21", "gpio22";
++		function = "blsp4_i2c1";
++		drive-strength = <8>;
++		bias-disable;
++	};
++
++	i2c_1_pins: i2c-1-state {
++		pins = "gpio46", "gpio47";
++		function = "blsp2_i2c";
++		drive-strength = <8>;
++		bias-disable;
++	};
++};
++
++&blsp1_uart3 {
++	status = "okay";
++	pinctrl-0 = <&hsuart_232_pins>;
++	pinctrl-names = "default";
++};
++
++&blsp1_uart5 {
++	status = "okay";
++};
++
++&blsp1_uart6 {
++	status = "okay";
++	pinctrl-0 = <&hsuart_485_pins>;
++	pinctrl-names = "default";
++};
++
++&blsp1_i2c2 {
++	status = "okay";
++	pinctrl-0 = <&i2c_0_pins>;
++	pinctrl-names = "default";
++};
++
++&blsp1_i2c3 {
++	status = "okay";
++	pinctrl-0 = <&i2c_1_pins>;
++	pinctrl-names = "default";
++};
++
++&cryptobam {
++	status = "okay";
++};
++
++&crypto {
++	status = "okay";
++};
++
++&prng {
++	status = "okay";
++};
++
++&blsp1_spi1 {
++	pinctrl-0 = <&spi_0_pins>;
++	pinctrl-names = "default";
++	cs-gpios = <0>;
++	status = "okay";
++
++	/*
++	 * Bootloader will find the NAND DT node by the compatible and
++	 * then "fixup" it by adding the partitions from the SMEM table
++	 * using the legacy bindings thus making it impossible for us
++	 * to change the partition table or utilize NVMEM for calibration.
++	 * So add a dummy partitions node that bootloader will populate
++	 * and set it as disabled so the kernel ignores it instead of
++	 * printing warnings due to the broken way bootloader adds the
++	 * partitions.
++	 */
++	partitions {
++		status = "disabled";
++	};
++
++	flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		reg = <0>;
++		compatible = "jedec,spi-nor";
++		spi-max-frequency = <50000000>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "0:sbl1";
++				reg = <0x0 0x50000>;
++				read-only;
++			};
++
++			partition@50000 {
++				label = "0:mibib";
++				reg = <0x50000 0x10000>;
++				read-only;
++			};
++
++			partition@60000 {
++				label = "0:bootconfig";
++				reg = <0x60000 0x20000>;
++				read-only;
++			};
++
++			partition@80000 {
++				label = "0:bootconfig1";
++				reg = <0x80000 0x20000>;
++				read-only;
++			};
++
++			partition@a0000 {
++				label = "0:qsee";
++				reg = <0xa0000 0x180000>;
++				read-only;
++			};
++
++			partition@220000 {
++				label = "0:qsee_1";
++				reg = <0x220000 0x180000>;
++				read-only;
++			};
++
++			partition@3a0000 {
++				label = "0:devcfg";
++				reg = <0x3a0000 0x10000>;
++				read-only;
++			};
++
++			partition@3b0000 {
++				label = "0:devcfg_1";
++				reg = <0x3b0000 0x10000>;
++				read-only;
++			};
++
++			partition@3c0000 {
++				label = "0:apdp";
++				reg = <0x3c0000 0x10000>;
++				read-only;
++			};
++
++			partition@3d0000 {
++				label = "0:apdp_1";
++				reg = <0x3d0000 0x10000>;
++				read-only;
++			};
++
++			partition@3e0000 {
++				label = "0:rpm";
++				reg = <0x3e0000 0x40000>;
++				read-only;
++			};
++
++			partition@420000 {
++				label = "0:rpm_1";
++				reg = <0x420000 0x40000>;
++				read-only;
++			};
++
++			partition@460000 {
++				label = "0:cdt";
++				reg = <0x460000 0x10000>;
++				read-only;
++			};
++
++			partition@470000 {
++				label = "0:cdt_1";
++				reg = <0x470000 0x10000>;
++				read-only;
++			};
++
++			partition@480000 {
++				label = "0:appsblenv";
++				reg = <0x480000 0x10000>;
++			};
++
++			partition@490000 {
++				label = "0:appsbl_1";
++				reg = <0x490000 0x100000>;
++			};
++
++			partition@540000 {
++				label = "0:appsbl";
++				reg = <0x590000 0x100000>;
++			};
++
++			partition@610000 {
++				label = "0:art";
++				reg = <0x690000 0x40000>;	
++			};
++			partition@630000 {
++				label = "0:ethphyfw";
++				reg = <0x6d0000 0x80000>;
++			};		
++		};
++	};
++};
++
++&qpic_bam {
++	status = "okay";
++};
++
++&qpic_nand {
++	status = "okay";
++	
++	/*
++	 * Bootloader will find the NAND DT node by the compatible and
++	 * then "fixup" it by adding the partitions from the SMEM table
++	 * using the legacy bindings thus making it impossible for us
++	 * to change the partition table or utilize NVMEM for calibration.
++	 * So add a dummy partitions node that bootloader will populate
++	 * and set it as disabled so the kernel ignores it instead of
++	 * printing warnings due to the broken way bootloader adds the
++	 * partitions.
++	 */
++	partitions {
++		status = "disabled";
++	};
++
++	nand@0 {
++		reg = <0>;
++		nand-ecc-strength = <4>;
++		nand-ecc-step-size = <512>;
++		nand-bus-width = <8>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "rootfs_1";
++				reg = <0x0 0x6400000>;
++			};
++
++			partition@6400000 {
++				label = "wififw_1";
++				reg = <0x6400000 0x800000>;
++			};
++
++			partition@6c00000 {
++				label = "rootfs";
++				reg = <0x6c00000 0x6400000>;
++			};
++		};
++	};
++};
++
++&sdhc_1 {
++	status = "okay";
++
++	/* According to the stock dts from the QNAP gpl drop
++	 * the emmc has a problem with the hs400 > hs200 speed switch.
++	 * Therefore remove the mmc-hs400-1_8v property
++	*/
++	/delete-property/ mmc-hs400-1_8v;
++	mmc-hs200-1_8v;
++	mmc-ddr-1_8v;
++	vqmmc-supply = <&l11>;
++};
++
++&blsp1_spi4 {
++	status = "okay";
++
++	pinctrl-0 = <&spi_3_pins>;
++	pinctrl-names = "default";
++	cs-select = <0>;
++
++	st7789v@0 {
++		compatible = "sitronix,st7789v";
++		reg = <0>;
++		spi-max-frequency = <2300000>;
++                buswidth = <8>;
++                rotate = <90>;
++		dc = <&tlmm 42 GPIO_ACTIVE_HIGH>;
++		reset = <&tlmm 43 GPIO_ACTIVE_HIGH>;
++		debug = <4>;
++	};
++};
++
++&qusb_phy_0 {
++	status = "okay";
++};
++
++&qusb_phy_1 {
++	status = "okay";
++};
++
++&ssphy_0 {
++	status = "okay";
++};
++
++&ssphy_1 {
++	status = "okay";
++};
++
++&usb_0 {
++	status = "okay";
++};
++
++&usb_1 {
++	status = "okay";
++};
++
++&pcie_qmp0 {
++	status = "okay";
++};
++
++&pcie0 {
++	status = "okay";
++
++	pinctrl-0 = <&pcie0_pins>;
++	pinctrl-names = "default";
++
++	perst-gpio = <&tlmm 58 GPIO_ACTIVE_LOW>;
++
++	bridge@0,0 {
++		reg = <0x00020000 0 0 0 0>;
++		#address-cells = <3>;
++		#size-cells = <2>;
++		ranges;
++	};
++};
++
++&pcie_qmp1 {
++	status = "okay";
++};
++
++&pcie1 {
++	status = "okay";
++
++	pinctrl-0 = <&pcie1_pins>;
++	pinctrl-names = "default";
++
++	perst-gpio = <&tlmm 61 GPIO_ACTIVE_LOW>;
++
++	bridge@1,0 {
++		reg = <0x00010000 0 0 0 0>;
++		#address-cells = <3>;
++		#size-cells = <2>;
++		ranges;
++	};
++};
++
++&mdio {
++	status = "okay";
++
++	pinctrl-0 = <&mdio_pins>;
++	pinctrl-names = "default";
++	reset-gpios = <&tlmm 37 GPIO_ACTIVE_LOW>;
++
++	ethernet-phy-package@0 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		compatible = "qcom,qca8075-package";
++		reg = <0>;
++
++		qca8075_2: ethernet-phy@2 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <2>;
++		};
++
++		qca8075_3: ethernet-phy@3 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <3>;
++		};
++
++		qca8075_4: ethernet-phy@4 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <4>;
++		};
++	};
++};
++
++&switch {
++	status = "okay";
++
++	switch_lan_bmp = <(ESS_PORT4 | ESS_PORT5)>; /* lan port bitmap */
++	switch_wan_bmp = <ESS_PORT3>; /* wan port bitmap */
++	switch_mac_mode = <MAC_MODE_PSGMII>; /* mac mode for uniphy instance0*/
++
++	qcom,port_phyinfo {
++		port@3 {
++			port_id = <3>;
++			phy_address = <2>;
++		};
++		port@4 {
++			port_id = <4>;
++			phy_address = <3>;
++		};
++		port@5 {
++			port_id = <5>;
++			phy_address = <4>;
++		};
++	};
++};
++
++&edma {
++	status = "okay";
++};
++
++&dp3 {
++	status = "okay";
++	phy-handle = <&qca8075_2>;
++	label = "wan";
++};
++
++&dp4 {
++	status = "okay";
++	phy-handle = <&qca8075_3>;
++	label = "lan1";
++};
++
++&dp5 {
++	status = "okay";
++	phy-handle = <&qca8075_4>;
++	label = "lan2";
++};
++
++&wifi {
++	status = "okay";
++
++	qcom,ath11k-calibration-variant = "ALIYUN-XGLINK5G";
++};
+diff --git a/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8074-nbg7815.dts b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8074-nbg7815.dts
+index b18f38cc6c..96b0fbf2ca 100644
+--- a/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8074-nbg7815.dts
++++ b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8074-nbg7815.dts
+@@ -411,8 +411,7 @@
+ };
+ 
+ &blsp1_i2c2 {
+-	pinctrl-0 = <&i2c_0_pins>;
+-	pinctrl-names = "default";
++
+ 	status = "okay";
+ 
+ 	tmp103@70 {
+diff --git a/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8174-mx4200.dtsi b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8174-mx4200.dtsi
+index 13ce8d1601..b68b145204 100644
+--- a/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8174-mx4200.dtsi
++++ b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8174-mx4200.dtsi
+@@ -92,11 +92,6 @@
+ 
+ &blsp1_uart3 {
+ 	status = "okay";
+-
+-	pinctrl-0 = <&hsuart_pins &iot_pins>;
+-	pinctrl-names = "default";
+-
+-	/* Silicon Labs EFR32MG21 IoT */
+ };
+ 
+ &blsp1_uart5 {
+diff --git a/target/linux/qualcommax/image/ipq807x.mk b/target/linux/qualcommax/image/ipq807x.mk
+index 74fe15a997..3d416e4626 100644
+--- a/target/linux/qualcommax/image/ipq807x.mk
++++ b/target/linux/qualcommax/image/ipq807x.mk
+@@ -324,3 +324,29 @@ define Device/zyxel_nbg7815
+ 		kmod-bluetooth kmod-hwmon-tmp103
+ endef
+ TARGET_DEVICES += zyxel_nbg7815
++
++define Device/aliyun_xglink5g
++	$(call Device/FitImage)
++	$(call Device/UbiFit)
++	DEVICE_VENDOR := ALIYUN
++	DEVICE_MODEL := XGLINK5G
++	BLOCKSIZE := 128k
++	PAGESIZE := 2048
++	DEVICE_DTS_CONFIG := config@hk09
++	SOC := ipq8072
++	DEVICE_PACKAGES := ipq-wifi-aliyun_xglink5g kmod-spi-gpio kmod-fb kmod-fb-tft-st7789v
++endef
++TARGET_DEVICES += aliyun_xglink5g
++
++define Device/pangu_l8072v2
++	$(call Device/FitImage)
++	$(call Device/UbiFit)
++	DEVICE_VENDOR := PANGU
++	DEVICE_MODEL := L8072V2
++	BLOCKSIZE := 128k
++	PAGESIZE := 2048
++	DEVICE_DTS_CONFIG := config@hk07
++	SOC := ipq8072
++	DEVICE_PACKAGES := ipq-wifi-qnap_301w
++endef
++TARGET_DEVICES += pangu_l8072v2
+diff --git a/target/linux/qualcommax/ipq807x/base-files/etc/board.d/02_network b/target/linux/qualcommax/ipq807x/base-files/etc/board.d/02_network
+index fb3fec6fc9..918aa6060c 100644
+--- a/target/linux/qualcommax/ipq807x/base-files/etc/board.d/02_network
++++ b/target/linux/qualcommax/ipq807x/base-files/etc/board.d/02_network
+@@ -11,6 +11,10 @@ ipq807x_setup_interfaces()
+ 	local board="$1"
+ 
+ 	case "$board" in
++	aliyun,xglink5g|\
++	pangu,l8072v2)
++		ucidef_set_interfaces_lan_wan "lan1 lan2" "wan"
++		;;
+ 	arcadyan,aw1000|\
+ 	buffalo,wxr-5950ax12|\
+ 	dynalink,dl-wrx36|\
+diff --git a/target/linux/qualcommax/ipq807x/base-files/etc/hotplug.d/firmware/11-ath11k-caldata b/target/linux/qualcommax/ipq807x/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
+index 88ba972407..48bc68f9f0 100644
+--- a/target/linux/qualcommax/ipq807x/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
++++ b/target/linux/qualcommax/ipq807x/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
+@@ -9,6 +9,8 @@ board=$(board_name)
+ case "$FIRMWARE" in
+ "ath11k/IPQ8074/hw2.0/cal-ahb-c000000.wifi.bin")
+ 	case "$board" in
++	aliyun,xglink5g|\
++	pangu,l8072v2|\
+ 	arcadyan,aw1000|\
+ 	buffalo,wxr-5950ax12|\
+ 	cmcc,rm2-6|\
+diff --git a/target/linux/qualcommax/ipq807x/base-files/lib/upgrade/platform.sh b/target/linux/qualcommax/ipq807x/base-files/lib/upgrade/platform.sh
+index bffca41e02..836437a8d5 100644
+--- a/target/linux/qualcommax/ipq807x/base-files/lib/upgrade/platform.sh
++++ b/target/linux/qualcommax/ipq807x/base-files/lib/upgrade/platform.sh
+@@ -43,6 +43,8 @@ platform_pre_upgrade() {
+ 
+ platform_do_upgrade() {
+ 	case "$(board_name)" in
++	aliyun,xglink5g|\
++	pangu,l8072v2|\
+ 	arcadyan,aw1000|\
+ 	cmcc,rm2-6|\
+ 	compex,wpq873|\
+diff --git a/target/linux/qualcommax/patches-6.6/0920-ipq8074-add-blsp1-i2c4.patch b/target/linux/qualcommax/patches-6.6/0920-ipq8074-add-blsp1-i2c4.patch
+new file mode 100755
+index 0000000000..7e77a96ba8
+--- /dev/null
++++ b/target/linux/qualcommax/patches-6.6/0920-ipq8074-add-blsp1-i2c4.patch
+@@ -0,0 +1,25 @@
++diff -uprN a/arch/arm64/boot/dts/qcom/ipq8074.dtsi b/arch/arm64/boot/dts/qcom/ipq8074.dtsi
++--- a/arch/arm64/boot/dts/qcom/ipq8074.dtsi	2023-06-22 18:11:32.910676000 -0700
+++++ b/arch/arm64/boot/dts/qcom/ipq8074.dtsi	2023-07-26 21:43:58.269612521 -0700
++@@ -769,6 +775,21 @@
++ 			dmas = <&blsp_dma 18>, <&blsp_dma 19>;
++ 			dma-names = "tx", "rx";
++ 			status = "disabled";
+++		};
+++
+++		blsp1_i2c4: i2c@78b8000 {
+++			compatible = "qcom,i2c-qup-v2.2.1";
+++			#address-cells = <1>;
+++			#size-cells = <0>;
+++			reg = <0x078b8000 0x600>;
+++			interrupts = <GIC_SPI 98 IRQ_TYPE_LEVEL_HIGH>;
+++			clocks = <&gcc GCC_BLSP1_QUP4_I2C_APPS_CLK>,
+++				 <&gcc GCC_BLSP1_AHB_CLK>;
+++			clock-names = "core", "iface";
+++			clock-frequency = <100000>;
+++			dmas = <&blsp_dma 18>, <&blsp_dma 19>;
+++			dma-names = "tx", "rx";
+++			status = "disabled";
++ 		};
++ 
++ 		blsp1_i2c5: i2c@78b9000 {
+diff --git a/target/linux/qualcommax/patches-6.6/0921-alyun.patch b/target/linux/qualcommax/patches-6.6/0921-alyun.patch
+new file mode 100644
+index 0000000000..151d2da90f
+--- /dev/null
++++ b/target/linux/qualcommax/patches-6.6/0921-alyun.patch
+@@ -0,0 +1,73 @@
++diff -uprN a/arch/arm64/boot/dts/qcom/ipq8074.dtsi b/arch/arm64/boot/dts/qcom/ipq8074.dtsi
++--- a/arch/arm64/boot/dts/qcom/ipq8074.dtsi	2024-04-06 00:56:22.759003000 -0700
+++++ b/arch/arm64/boot/dts/qcom/ipq8074.dtsi	2024-04-06 01:15:21.011122901 -0700
++@@ -346,13 +346,6 @@
++ 				bias-disable;
++ 			};
++ 
++-			i2c_0_pins: i2c-0-state {
++-				pins = "gpio42", "gpio43";
++-				function = "blsp1_i2c";
++-				drive-strength = <8>;
++-				bias-disable;
++-			};
++-
++ 			spi_0_pins: spi-0-state {
++ 				pins = "gpio38", "gpio39", "gpio40", "gpio41";
++ 				function = "blsp0_spi";
++@@ -360,19 +353,12 @@
++ 				bias-disable;
++ 			};
++ 
++-			hsuart_pins: hsuart-state {
++-				pins = "gpio46", "gpio47", "gpio48", "gpio49";
++-				function = "blsp2_uart";
++-				drive-strength = <8>;
++-				bias-disable;
++-			};
++-
++ 			qpic_pins: qpic-state {
++ 				pins = "gpio1", "gpio3", "gpio4",
++ 				       "gpio5", "gpio6", "gpio7",
++ 				       "gpio8", "gpio10", "gpio11",
++ 				       "gpio12", "gpio13", "gpio14",
++-				       "gpio15", "gpio16", "gpio17";
+++				       "gpio15", "gpio17";
++ 				function = "qpic";
++ 				drive-strength = <8>;
++ 				bias-disable;
++@@ -471,8 +457,6 @@
++ 			dmas = <&blsp_dma 4>,
++ 				<&blsp_dma 5>;
++ 			dma-names = "tx", "rx";
++-			pinctrl-0 = <&hsuart_pins>;
++-			pinctrl-names = "default";
++ 			status = "disabled";
++ 		};
++ 
++@@ -488,6 +472,16 @@
++ 			status = "disabled";
++ 		};
++ 
+++		blsp1_uart6: serial@78b4000 {
+++			compatible = "qcom,msm-uartdm-v1.4", "qcom,msm-uartdm";
+++			reg = <0x078b4000 0x200>;
+++			interrupts = <GIC_SPI 309 IRQ_TYPE_LEVEL_HIGH>;
+++			clocks = <&gcc GCC_BLSP1_UART6_APPS_CLK>,
+++				 <&gcc GCC_BLSP1_AHB_CLK>;
+++			clock-names = "core", "iface";
+++			status = "disabled";
+++		};		
+++
++ 		blsp1_spi1: spi@78b5000 {
++ 			compatible = "qcom,spi-qup-v2.2.1";
++ 			#address-cells = <1>;
++@@ -516,8 +510,6 @@
++ 			clock-frequency = <400000>;
++ 			dmas = <&blsp_dma 14>, <&blsp_dma 15>;
++ 			dma-names = "tx", "rx";
++-			pinctrl-0 = <&i2c_0_pins>;
++-			pinctrl-names = "default";
++ 			status = "disabled";
++ 		};
++ 
+diff --git a/target/linux/qualcommax/patches-6.6/0998-Add-Fibocom-FM150-AE-Qmi-Support.patch b/target/linux/qualcommax/patches-6.6/0998-Add-Fibocom-FM150-AE-Qmi-Support.patch
+new file mode 100644
+index 0000000000..6d73b976f3
+--- /dev/null
++++ b/target/linux/qualcommax/patches-6.6/0998-Add-Fibocom-FM150-AE-Qmi-Support.patch
+@@ -0,0 +1,59 @@
++diff -uprN a/drivers/bus/mhi/host/pci_generic.c b/drivers/bus/mhi/host/pci_generic.c
++--- a/drivers/bus/mhi/host/pci_generic.c	2024-03-29 18:55:14.246322000 -0700
+++++ b/drivers/bus/mhi/host/pci_generic.c	2024-03-29 18:49:08.204939121 -0700
++@@ -598,10 +598,55 @@ static const struct mhi_pci_dev_info mhi
++ 	.mru_default = 32768,
++ };
++ 
+++static const struct mhi_channel_config mhi_fibocom_sdx55_channels[] = {
+++	MHI_CHANNEL_CONFIG_UL(0, "LOOPBACK", 32, 0),
+++	MHI_CHANNEL_CONFIG_DL(1, "LOOPBACK", 32, 0),
+++	MHI_CHANNEL_CONFIG_UL(4, "DIAG", 32, 1),
+++	MHI_CHANNEL_CONFIG_DL(5, "DIAG", 32, 1),
+++	MHI_CHANNEL_CONFIG_UL(14, "QMI", 32, 0),
+++	MHI_CHANNEL_CONFIG_DL(15, "QMI", 32, 0),
+++	MHI_CHANNEL_CONFIG_UL(32, "DUN", 32, 0),
+++	MHI_CHANNEL_CONFIG_DL(33, "DUN", 32, 0),
+++	MHI_CHANNEL_CONFIG_HW_UL(100, "IP_HW0", 128, 2),
+++	MHI_CHANNEL_CONFIG_HW_DL(101, "IP_HW0", 128, 3),
+++};
+++
+++static struct mhi_event_config mhi_fibocom_sdx55_events[] = {
+++	MHI_EVENT_CONFIG_CTRL(0, 128),
+++	MHI_EVENT_CONFIG_DATA(1, 128),
+++	MHI_EVENT_CONFIG_HW_DATA(2, 1024, 100),
+++	MHI_EVENT_CONFIG_HW_DATA(3, 1024, 101)
+++};
+++
+++static const struct mhi_controller_config modem_fibocom_sdx55_config = {
+++	.max_channels = 128,
+++	.timeout_ms = 20000,
+++	.num_channels = ARRAY_SIZE(mhi_fibocom_sdx55_channels),
+++	.ch_cfg = mhi_fibocom_sdx55_channels,
+++	.num_events = ARRAY_SIZE(mhi_fibocom_sdx55_events),
+++	.event_cfg = mhi_fibocom_sdx55_events,
+++};
+++
+++static const struct mhi_pci_dev_info mhi_fibocom_sdx55_info = {
+++	.name = "fibocom-sdx55",
+++	.fw = "qcom/sdx55m/sbl1.mbn",
+++	.edl = "qcom/sdx55m/edl.mbn",
+++	.config = &modem_fibocom_sdx55_config,
+++	.bar_num = MHI_PCI_DEFAULT_BAR_NUM,
+++	.dma_data_width = 32,
+++	.mru_default = 32768,
+++	.sideband_wake = false,
+++};
+++
++ /* Keep the list sorted based on the PID. New VID should be added as the last entry */
++ static const struct pci_device_id mhi_pci_id_table[] = {
++ 	{ PCI_DEVICE(PCI_VENDOR_ID_QCOM, 0x0304),
++ 		.driver_data = (kernel_ulong_t) &mhi_qcom_sdx24_info },
+++	/* FM150AE(sdx55)*/
+++	{ PCI_DEVICE_SUB(PCI_VENDOR_ID_QCOM, 0x0306, 0x1cf8, 0x5502),
+++		.driver_data = (kernel_ulong_t) &mhi_fibocom_sdx55_info },
+++	{ PCI_DEVICE_SUB(PCI_VENDOR_ID_QCOM, 0x0306, PCI_VENDOR_ID_QCOM, 0x010c),
+++		.driver_data = (kernel_ulong_t) &mhi_fibocom_sdx55_info },
++ 	{ PCI_DEVICE_SUB(PCI_VENDOR_ID_QCOM, 0x0306, PCI_VENDOR_ID_QCOM, 0x010c),
++ 		.driver_data = (kernel_ulong_t) &mhi_foxconn_sdx55_info },
++ 	/* EM919x (sdx55), use the same vid:pid as qcom-sdx55m */

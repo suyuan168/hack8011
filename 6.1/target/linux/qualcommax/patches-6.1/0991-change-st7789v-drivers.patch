@@ -1,0 +1,216 @@
+diff -uprN a/drivers/staging/fbtft/fb_st7789v.c b/drivers/staging/fbtft/fb_st7789v.c
+--- a/drivers/staging/fbtft/fb_st7789v.c	2024-02-05 12:13:03.000000000 -0800
++++ b/drivers/staging/fbtft/fb_st7789v.c	2024-03-15 08:34:49.498457000 -0700
+@@ -145,75 +145,39 @@ static int init_display(struct fbtft_par
+ 	int rc;
+ 
+ 	par->fbtftops.reset(par);
++	mdelay(50);
+ 
+ 	rc = init_tearing_effect_line(par);
+ 	if (rc)
+ 		return rc;
+ 
+-	/* turn off sleep mode */
+-	write_reg(par, MIPI_DCS_EXIT_SLEEP_MODE);
+-	mdelay(120);
+-
+-	/* set pixel format to RGB-565 */
+-	write_reg(par, MIPI_DCS_SET_PIXEL_FORMAT, MIPI_DCS_PIXEL_FMT_16BIT);
+-	if (HSD20_IPS)
+-		write_reg(par, PORCTRL, 0x05, 0x05, 0x00, 0x33, 0x33);
+-
+-	else
+-		write_reg(par, PORCTRL, 0x08, 0x08, 0x00, 0x22, 0x22);
+-
+-	/*
+-	 * VGH = 13.26V
+-	 * VGL = -10.43V
+-	 */
+-	if (HSD20_IPS)
+-		write_reg(par, GCTRL, 0x75);
+-	else
+-		write_reg(par, GCTRL, 0x35);
+-
+-	/*
+-	 * VDV and VRH register values come from command write
+-	 * (instead of NVM)
+-	 */
+-	write_reg(par, VDVVRHEN, 0x01, 0xFF);
+-
+-	/*
+-	 * VAP =  4.1V + (VCOM + VCOM offset + 0.5 * VDV)
+-	 * VAN = -4.1V + (VCOM + VCOM offset + 0.5 * VDV)
+-	 */
+-	if (HSD20_IPS)
+-		write_reg(par, VRHS, 0x13);
+-	else
+-		write_reg(par, VRHS, 0x0B);
+-
+-	/* VDV = 0V */
+-	write_reg(par, VDVS, 0x20);
+-
+-	/* VCOM = 0.9V */
+-	if (HSD20_IPS)
+-		write_reg(par, VCOMS, 0x22);
+-	else
+-		write_reg(par, VCOMS, 0x20);
+-
+-	/* VCOM offset = 0V */
+-	write_reg(par, VCMOFSET, 0x20);
+-
+-	/*
+-	 * AVDD = 6.8V
+-	 * AVCL = -4.8V
+-	 * VDS = 2.3V
+-	 */
+-	write_reg(par, PWCTRL1, 0xA4, 0xA1);
+-
+-	/* TE line output is off by default when powering on */
+-	if (irq_te)
+-		write_reg(par, MIPI_DCS_SET_TEAR_ON, 0x00);
+-
+-	write_reg(par, MIPI_DCS_SET_DISPLAY_ON);
+-
+-	if (HSD20_IPS)
+-		write_reg(par, MIPI_DCS_ENTER_INVERT_MODE);
+-
++	write_reg(par,0x11);//Sleep exit
++	mdelay(12);
++	write_reg(par,0x11);
++	mdelay(10);
++	write_reg(par,0x3A,0x05); //65k mode
++	write_reg(par,0xc5,0x1a);
++	write_reg(par,0x36,0x5a); // 屏幕显示方向设置
++	//-------------ST7789V Frame rate setting-----------//
++	write_reg(par,0xb2,0x05,0x05,0x00,0x33,0x33);
++	write_reg(par,0xb7,0x35);
++	//--------------ST7789V Power setting---------------//
++	write_reg(par,0xbb,0x3f);
++	write_reg(par,0xc0,0x2c);
++	write_reg(par,0xc2,0x01);
++	write_reg(par,0xc3,0x0f);
++	write_reg(par,0xc4,0x20);
++	write_reg(par,0xc6,0x11);
++	write_reg(par,0xd0,0xa4,0xa1);
++	write_reg(par,0xe8,0x03);
++	write_reg(par,0xe9,0x09,0x09,0x08);
++	write_reg(par,0xe0,0xd0,0x05,0x09,0x09,0x08,0x14,0x28,0x33,0x3f,0x07,0x13,0x14,0x28,0x30);
++	write_reg(par,0xe1,0xd0,0x05,0x09,0x09,0x08,0x03,0x24,0x32,0x32,0x3b,0x14,0x13,0x28,0x2f);
++	write_reg(par,0x21);
++	write_reg(par,0x11);
++	mdelay(120);      //Delay 120ms
++	write_reg(par,0x29);
++	mdelay(200);
+ 	return 0;
+ }
+ 
+diff -uprN a/drivers/staging/fbtft/fbtft-core.c b/drivers/staging/fbtft/fbtft-core.c
+--- a/drivers/staging/fbtft/fbtft-core.c	2024-03-12 07:41:19.206581745 -0700
++++ b/drivers/staging/fbtft/fbtft-core.c	2024-03-13 04:49:00.407441456 -0700
+@@ -30,6 +30,9 @@
+ #include "fbtft.h"
+ #include "internal.h"
+ 
++#include <linux/of.h>
++#include <linux/of_gpio.h>
++
+ static unsigned long debug;
+ module_param(debug, ulong, 0000);
+ MODULE_PARM_DESC(debug, "override device debug level");
+@@ -74,17 +77,31 @@ static int fbtft_request_one_gpio(struct
+ 				  const char *name, int index,
+ 				  struct gpio_desc **gpiop)
+ {
++	int ret, gpio;
+ 	struct device *dev = par->info->device;
++	struct device_node *np = dev->of_node;
++	enum of_gpio_flags flags;
++
++	/* Get GPIO from device tree */
++	gpio = of_get_named_gpio_flags(np, name, index, &flags);
++	if (gpio < 0) {
++	return 0;
++	}
+ 
+-	*gpiop = devm_gpiod_get_index_optional(dev, name, index,
+-					       GPIOD_OUT_LOW);
+-	if (IS_ERR(*gpiop))
+-		return dev_err_probe(dev, PTR_ERR(*gpiop), "Failed to request %s GPIO\n", name);
++	ret = devm_gpio_request_one(dev, gpio,
++			(flags & OF_GPIO_ACTIVE_LOW)?GPIOF_OUT_INIT_LOW:GPIOF_OUT_INIT_HIGH,
++			dev->driver->name);
++	if (ret) {
++		dev_err(dev, "Failed to request %s GPIO%d\n", name, gpio);
++		return -ENODEV;
++	}
++
++	*gpiop = gpio_to_desc(gpio);
+ 
+ 	fbtft_par_dbg(DEBUG_REQUEST_GPIOS, par, "%s: '%s' GPIO\n",
+-		      __func__, name);
++			__func__, name);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static int fbtft_request_gpios(struct fbtft_par *par)
+@@ -92,34 +109,34 @@ static int fbtft_request_gpios(struct fb
+ 	int i;
+ 	int ret;
+ 
+-	ret = fbtft_request_one_gpio(par, "reset", 0, &par->gpio.reset);
++	ret = fbtft_request_one_gpio(par, "reset-gpios", 0, &par->gpio.reset);
+ 	if (ret)
+ 		return ret;
+-	ret = fbtft_request_one_gpio(par, "dc", 0, &par->gpio.dc);
++	ret = fbtft_request_one_gpio(par, "dc-gpios", 0, &par->gpio.dc);
+ 	if (ret)
+ 		return ret;
+-	ret = fbtft_request_one_gpio(par, "rd", 0, &par->gpio.rd);
++	ret = fbtft_request_one_gpio(par, "rd-gpios", 0, &par->gpio.rd);
+ 	if (ret)
+ 		return ret;
+-	ret = fbtft_request_one_gpio(par, "wr", 0, &par->gpio.wr);
++	ret = fbtft_request_one_gpio(par, "wr-gpios", 0, &par->gpio.wr);
+ 	if (ret)
+ 		return ret;
+-	ret = fbtft_request_one_gpio(par, "cs", 0, &par->gpio.cs);
++	ret = fbtft_request_one_gpio(par, "cs-gpios", 0, &par->gpio.cs);
+ 	if (ret)
+ 		return ret;
+-	ret = fbtft_request_one_gpio(par, "latch", 0, &par->gpio.latch);
++	ret = fbtft_request_one_gpio(par, "latch-gpios", 0, &par->gpio.latch);
+ 	if (ret)
+ 		return ret;
+ 	for (i = 0; i < 16; i++) {
+-		ret = fbtft_request_one_gpio(par, "db", i,
++		ret = fbtft_request_one_gpio(par, "db-gpios", i,
+ 					     &par->gpio.db[i]);
+ 		if (ret)
+ 			return ret;
+-		ret = fbtft_request_one_gpio(par, "led", i,
++		ret = fbtft_request_one_gpio(par, "led-gpios", i,
+ 					     &par->gpio.led[i]);
+ 		if (ret)
+ 			return ret;
+-		ret = fbtft_request_one_gpio(par, "aux", i,
++		ret = fbtft_request_one_gpio(par, "aux-gpios", i,
+ 					     &par->gpio.aux[i]);
+ 		if (ret)
+ 			return ret;
+@@ -220,10 +237,11 @@ static void fbtft_reset(struct fbtft_par
+ 
+ 	gpiod_set_value_cansleep(par->gpio.reset, 1);
+ 	usleep_range(20, 40);
+-	gpiod_set_value_cansleep(par->gpio.reset, 0);
++	gpiod_set_value_cansleep(par->gpio.reset, 0);  /* Low level reset */
+ 	msleep(120);
+ 
+-	gpiod_set_value_cansleep(par->gpio.cs, 1);  /* Activate chip */
++       gpiod_set_value_cansleep(par->gpio.reset, 1);  /* Activate chip */
++	msleep(10);
+ }
+ 
+ static void fbtft_update_display(struct fbtft_par *par, unsigned int start_line,
